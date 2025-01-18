@@ -1,5 +1,5 @@
 {
-  "name": "${PROJECT_NAME}",
+  "name": "AstraTrainer",
   "private": true,
   "version": "0.0.0",
   "type": "module",
