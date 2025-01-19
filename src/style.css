@@ -1,6 +1,6 @@
 body {
     font-family: monospace;
-    background-color: #1e1e1e;
+    background-color: #1a1917;
     color: #d4d4d4;
     margin: 0;
     padding: 0;
@@ -48,4 +48,15 @@ button {
 
 button:hover {
     background-color: #005f99;
+}
+/* Логотип в правом верхнем углу */
+#logo-container {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+#astra-logo {
+    width: 100px; /* Ширина логотипа */
+    height: auto; /* Сохранение пропорций */
 }
