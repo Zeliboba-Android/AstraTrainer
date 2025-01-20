@@ -115,32 +115,6 @@ const commands = {
     delete dir[source];
     return `Moved ${source} to ${destination}.`;
   },
-
-  cat: (args) => {
-    const fileName = args[0];
-    if (!fileName) return 'Usage: cat <file>';
-
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
-
-    if (dir[fileName] === undefined) {
-      return `File ${fileName} not found.`;
-    }
-
-    return `Contents of ${fileName}: (file content)`;
-  },
-
-  echo: (args) => {
-    const text = args.join(' ');
-    if (text) {
-      return text;
-    }
-    return 'Usage: echo <text>';
-  },
-
   touch: (args) => {
     const fileName = args[0];
     if (!fileName) return 'Usage: touch <file>';
@@ -181,36 +155,6 @@ const commands = {
     delete dir[dirName];
     return `Directory ${dirName} removed.`;
   },
-
-  basename: (args) => {
-    const fullPath = args[0];
-    if (!fullPath) return 'Usage: basename <path>';
-    return fullPath.split('/').pop();
-  },
-
-  dirname: (args) => {
-    const fullPath = args[0];
-    if (!fullPath) return 'Usage: dirname <path>';
-    return fullPath.split('/').slice(0, -1).join('/');
-  },
-
-  stat: (args) => {
-    const fileName = args[0];
-    if (!fileName) return 'Usage: stat <file>';
-
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
-
-    if (dir[fileName] === undefined) {
-      return `File ${fileName} not found.`;
-    }
-
-    return `File ${fileName} stats: Size: N/A, Permissions: N/A, Modified: N/A`;
-  },
-
   help: () => {
     return `Available commands:
 - ls: List directory contents
@@ -220,12 +164,7 @@ const commands = {
 - rm <file>: Remove a file
 - cp <source> <destination>: Copy a file
 - mv <source> <destination>: Move or rename a file
-- cat <file>: Display file content
-- echo <text>: Display a message
 - rmdir <directory>: Remove a directory
-- basename <path>: Get the file name from a path
-- dirname <path>: Get the directory from a path
-- stat <file>: Display file stats
 - help: Show this help message`;
   },
 
