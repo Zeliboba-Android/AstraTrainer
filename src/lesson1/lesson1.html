@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lesson 1: Navigating the File System</title>
+  <link rel="stylesheet" href="../assets/shared.css">
+  <link rel="stylesheet" href="../lesson1/lesson1.css">
+</head>
+<body>
+<div id="lesson1-status" class="status">Status: Not Started</div>
+<div class="modal-content">
+  <h2>Lesson 1: Navigating the File System</h2>
+  <p><strong>Задание:</strong> Перейдите в директорию "Documents", создайте там новую директорию "MyFolder" и выведите список содержимого директории.</p>
+  <div class="hint-container">
+    <button onclick="showHint('hint1')">Показать подсказку</button>
+    <div id="hint1" class="hint" style="display: none;">
+      <p><strong>Подсказка:</strong> Используйте команду `cd Documents`, чтобы перейти в директорию "Documents". Затем используйте `mkdir MyFolder`, чтобы создать новую директорию, и `ls`, чтобы вывести список содержимого.</p>
+    </div>
+  </div>
+  <div class="terminal">
+    <div id="terminal-output">Welcome to CLI Trainer!
+      Type "help" for a list of commands.</div>
+  </div>
+  <div id="input-section">
+    <input id="command-input" type="text" placeholder="Enter a command..." autocomplete="off" onkeydown="if (event.key === 'Enter') executeCommand()">
+    <button id="run-btn" onclick="executeCommand()">Run</button>
+    <button id="clear-btn" onclick="clearTerminal()">Clear</button>
+  </div>
+</div>
+<button id="back-btn" onclick="window.location.href='../lessonsScreen/lessons.html'">Back to lessons</button>
+<script src="../lessonsScreen/lessons.js"></script>
+</body>
+</html>

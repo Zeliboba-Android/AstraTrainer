@@ -64,9 +64,9 @@ h1 {
     background-color: #f44336;
     color: #fff;
 }
+
 #back-btn {
     position: absolute;
-    top: 10px; /* Расстояние от верхней границы */
-    left: 10px; /* Расстояние от левой границы */
+    top: 10px;
+    left: 10px;
 }
-

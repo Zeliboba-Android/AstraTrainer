@@ -1,40 +1,68 @@
+let fileSystem;
+let currentPath;
+
 // Sample file system structure
-const fileSystem = {
-  '/': {
-    'home': {
-      'user': {
+(function loadState() {
+  const savedFileSystem = localStorage.getItem('fileSystem');
+  const savedCurrentPath = localStorage.getItem('currentPath');
+
+  fileSystem = savedFileSystem ? JSON.parse(savedFileSystem) : {
+    '/': {
+      'home': {
+        'user': {}
       }
     }
-  }
-};
+  };
 
-let currentPath = '/';
+  currentPath = savedCurrentPath || '/';
+})();
+
+function saveState() {
+  localStorage.setItem('fileSystem', JSON.stringify(fileSystem));
+  localStorage.setItem('currentPath', currentPath);
+}
+
+function resolvePath(path) {
+  const pathParts = path.split('/').filter(Boolean);
+  let dir = fileSystem;
+  for (const part of pathParts) {
+    if (dir[part] === undefined) {
+      return null;
+    }
+    dir = dir[part];
+  }
+  return dir;
+}
 
 const commands = {
   ls: () => {
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
     return Object.keys(dir).join('  ');
   },
 
   cd: (args) => {
     const target = args[0];
     if (!target) return 'Usage: cd <directory>';
+
+    let newPath;
     if (target === '/') {
-      currentPath = '/';
+      newPath = '/';
     } else if (target === '..') {
       const pathParts = currentPath.split('/').filter(Boolean);
       pathParts.pop();
-      currentPath = '/' + pathParts.join('/');
+      newPath = '/' + pathParts.join('/');
     } else {
-      const pathParts = currentPath.split('/').filter(Boolean);
-      pathParts.push(target);
-      currentPath = '/' + pathParts.join('/');
+      newPath = currentPath === '/' ? `/${target}` : `${currentPath}/${target}`;
     }
-    return `Now in ${currentPath}`;
+
+    if (!resolvePath(newPath)) {
+      return `Directory ${target} not found.`;
+    }
+
+    currentPath = newPath;
+    saveState();
+    return ` `;
   },
 
   pwd: () => {
@@ -45,17 +73,15 @@ const commands = {
     const dirName = args[0];
     if (!dirName) return 'Usage: mkdir <directory>';
 
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
 
-    if (dir[dirName]) {
+    if (dir[dirName] !== undefined) {
       return `Directory ${dirName} already exists.`;
     }
 
     dir[dirName] = {};
+    saveState();
     return `Directory ${dirName} created.`;
   },
 
@@ -63,17 +89,19 @@ const commands = {
     const target = args[0];
     if (!target) return 'Usage: rm <file or directory>';
 
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
 
     if (dir[target] === undefined) {
       return `File or directory ${target} not found.`;
     }
 
+    if (typeof dir[target] === 'object' && Object.keys(dir[target]).length > 0) {
+      return `Directory ${target} is not empty.`;
+    }
+
     delete dir[target];
+    saveState();
     return `Deleted ${target}.`;
   },
 
@@ -81,18 +109,15 @@ const commands = {
     const [source, destination] = args;
     if (!source || !destination) return 'Usage: cp <source> <destination>';
 
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
 
     if (dir[source] === undefined) {
       return `Source file ${source} not found.`;
     }
 
-    // Copy file content (assuming it's null or undefined for empty files)
     dir[destination] = dir[source];
+    saveState();
     return `Copied ${source} to ${destination}.`;
   },
 
@@ -100,36 +125,32 @@ const commands = {
     const [source, destination] = args;
     if (!source || !destination) return 'Usage: mv <source> <destination>';
 
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
 
     if (dir[source] === undefined) {
       return `Source file ${source} not found.`;
     }
 
-    // Move (rename) the file
     dir[destination] = dir[source];
     delete dir[source];
+    saveState();
     return `Moved ${source} to ${destination}.`;
   },
+
   touch: (args) => {
     const fileName = args[0];
     if (!fileName) return 'Usage: touch <file>';
 
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
 
-    if (dir[fileName]) {
+    if (dir[fileName] !== undefined) {
       return `File ${fileName} already exists.`;
     }
 
     dir[fileName] = null;
+    saveState();
     return `File ${fileName} created.`;
   },
 
@@ -137,24 +158,22 @@ const commands = {
     const dirName = args[0];
     if (!dirName) return 'Usage: rmdir <directory>';
 
-    const pathParts = currentPath.split('/').filter(Boolean);
-    let dir = fileSystem;
-    for (const part of pathParts) {
-      dir = dir[part];
-    }
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
 
-    if (!dir[dirName]) {
+    if (dir[dirName] === undefined) {
       return `Directory ${dirName} not found.`;
     }
 
-    // Ensure the directory is empty
-    if (Object.keys(dir[dirName]).length > 0) {
-      return `Directory ${dirName} is not empty.`;
+    if (typeof dir[dirName] !== 'object' || Object.keys(dir[dirName]).length > 0) {
+      return `Directory ${dirName} is not empty or is not a directory.`;
     }
 
     delete dir[dirName];
+    saveState();
     return `Directory ${dirName} removed.`;
   },
+
   help: () => {
     return `Available commands:
 - ls: List directory contents
@@ -169,8 +188,10 @@ const commands = {
   },
 
   clear: () => {
-    terminalOutput.innerHTML = 'Welcome to CLI Trainer!\n' +
-      '    Type "help" for a list of commands.';
+    terminalOutput.innerHTML = 'Welcome to CLI Trainer!\nType "help" for commands.';
+    fileSystem = { '/': { 'home': { 'user': {} } } }; // Сброс FS
+    currentPath = '/';
+    saveState();
     return '';
   }
 };

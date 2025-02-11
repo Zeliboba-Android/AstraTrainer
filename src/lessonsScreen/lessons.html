@@ -13,9 +13,9 @@
 </div>
 <div id="lessons-container">
   <h1>Linux Lessons</h1>
-  <div class="lesson-card">
+  <div class="lesson-card" onclick="window.location.href='../lesson1/lesson1.html'">
     <h2>Lesson 1: Navigating the File System</h2>
-    <span class="status completed">Completed</span>
+    <span id="lesson1-status" class="status not-started">Not Started</span>
   </div>
   <div class="lesson-card">
     <h2>Lesson 2: File Management Commands</h2>
@@ -27,6 +27,7 @@
   </div>
   <button id="back-btn" onclick="window.location.href='../startScreen/View.html'">Back to Home</button>
 </div>
+
 <script src="lessons.js"></script>
 </body>
 </html>

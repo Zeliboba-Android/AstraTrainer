@@ -8,10 +8,13 @@ function runCommand(commandLine) {
   const action = commands[command];
 
   if (action) {
+    const pathBefore = currentPath; // Сохраняем путь до выполнения команды
     const result = action(args);
-    if (result) terminalOutput.innerHTML += `\n$ ${commandLine}\n${result}`;
+    if (result) {
+      terminalOutput.innerHTML += `\n${pathBefore} $ ${commandLine}\n${result}`;
+    }
   } else {
-    terminalOutput.innerHTML += `\n$ ${commandLine}\nCommand not found.`;
+    terminalOutput.innerHTML += `\n${currentPath} $ ${commandLine}\nCommand not found.`;
   }
 }
 
