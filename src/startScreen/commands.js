@@ -77,17 +77,33 @@ const commands = {
     if (!dir) return 'Directory not found.';
 
     if (dir[dirName] !== undefined) {
+      // Если значение равно null (т.е. это файл), сообщаем, что не можем создать директорию с таким именем
+      if (dir[dirName] === null) {
+        return `Error: A file named ${dirName} already exists. Cannot create a directory with the same name.`;
+      }
+
       return `Directory ${dirName} already exists.`;
     }
 
+    // Создаем директорию, если имя свободно
     dir[dirName] = {};
     saveState();
     return `Directory ${dirName} created.`;
   },
 
+
   rm: (args) => {
-    const target = args[0];
-    if (!target) return 'Usage: rm <file or directory>';
+    let recursive = false;
+    const filteredArgs = args.filter(arg => {
+      if (arg === '-r') {
+        recursive = true;
+        return false;
+      }
+      return true;
+    });
+
+    const target = filteredArgs[0];
+    if (!target) return 'Usage: rm [-r] <file>';
 
     const dir = resolvePath(currentPath);
     if (!dir) return 'Directory not found.';
@@ -96,13 +112,27 @@ const commands = {
       return `File or directory ${target} not found.`;
     }
 
-    if (typeof dir[target] === 'object' && Object.keys(dir[target]).length > 0) {
-      return `Directory ${target} is not empty.`;
+    // Если это файл (не объект), просто удаляем
+    if (dir[target] === null || typeof dir[target] !== 'object') {
+      delete dir[target];
+      saveState();
+      return `File ${target} deleted.`;
     }
 
-    delete dir[target];
-    saveState();
-    return `Deleted ${target}.`;
+    // Если это директория
+    if (typeof dir[target] === 'object') {
+      // Если флаг -r не указан, возвращаем ошибку
+      if (!recursive) {
+        return `${target} is a directory. Use 'rmdir' to remove empty directories or 'rm -r' to delete directories recursively.`;
+      }
+
+      // Удаляем директорию рекурсивно, если указан флаг -r
+      delete dir[target];
+      saveState();
+      return `Directory ${target} deleted recursively.`;
+    }
+
+    return `Unknown error occurred while deleting ${target}.`;
   },
 
   cp: (args) => {
@@ -125,18 +155,44 @@ const commands = {
     const [source, destination] = args;
     if (!source || !destination) return 'Usage: mv <source> <destination>';
 
-    const dir = resolvePath(currentPath);
-    if (!dir) return 'Directory not found.';
+    const sourceDir = resolvePath(currentPath);
+    if (!sourceDir) return 'Directory not found.';
 
-    if (dir[source] === undefined) {
-      return `Source file ${source} not found.`;
+    // Получаем объект исходного элемента
+    const sourceItem = sourceDir[source];
+    if (!sourceItem) return `Source ${source} not found.`;
+
+    // Разрешаем целевой путь
+    let targetDir;
+    let newName;
+
+    // Если destination существует как директория
+    const destAsDir = resolvePath(destination);
+    if (destAsDir && typeof destAsDir === 'object') {
+      targetDir = destAsDir;
+      newName = source; // Сохраняем исходное имя каталога
+    } else {
+      // Пытаемся разобрать путь как комбинацию директории и имени
+      const destParts = destination.split('/').filter(Boolean);
+      newName = destParts.pop();
+      targetDir = resolvePath(destParts.join('/'));
+
+      if (!targetDir) return `Invalid destination path: ${destination}`;
     }
 
-    dir[destination] = dir[source];
-    delete dir[source];
+    // Проверяем конфликты
+    if (targetDir[newName] !== undefined) {
+      return `Destination ${newName} already exists.`;
+    }
+
+    // Перемещаем содержимое с сохранением структуры
+    targetDir[newName] = sourceItem;
+    delete sourceDir[source];
+
     saveState();
-    return `Moved ${source} to ${destination}.`;
+    return `Moved ${source} to ${destination}`;
   },
+
 
   touch: (args) => {
     const fileName = args[0];
@@ -165,14 +221,174 @@ const commands = {
       return `Directory ${dirName} not found.`;
     }
 
-    if (typeof dir[dirName] !== 'object' || Object.keys(dir[dirName]).length > 0) {
-      return `Directory ${dirName} is not empty or is not a directory.`;
+    // Проверка на директорию
+    if (dir[dirName] === null || typeof dir[dirName] !== 'object') {
+      return `Error: ${dirName} is not a directory. If you want to delete a file, use the 'rm' command.`;
+    }
+
+    // Проверка, что директория пуста
+    if (Object.keys(dir[dirName]).length > 0) {
+      return `Directory ${dirName} is not empty.`;
     }
 
     delete dir[dirName];
     saveState();
     return `Directory ${dirName} removed.`;
   },
+
+  cat: (args) => {
+    const fileName = args[0];
+    if (!fileName) return 'Usage: cat <file>';
+
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
+
+    if (dir[fileName] === undefined || dir[fileName] === null) {
+      return `File ${fileName} not found or is empty.`;
+    }
+
+    return dir[fileName];
+  },
+
+  echo: (args) => {
+    const fileName = args[args.length - 1]; // Последний аргумент - имя файла
+    const text = args.slice(0, args.length - 2).join(' '); // Все части до ">>"
+
+    // Разделяем переданный текст на строки по символу \n
+    const multiLineText = text.split('\\n').join('\n'); // \n становится настоящим символом новой строки
+
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
+
+    // Если файл не существует, создаем его
+    if (dir[fileName] === undefined) {
+      dir[fileName] = multiLineText;
+      saveState();
+      return `Text written to ${fileName}`;
+    }
+
+    // Если файл существует, добавляем текст в конец
+    dir[fileName] += '\n' + multiLineText;
+    saveState();
+    return `Text appended to ${fileName}`;
+  },
+
+
+  basename: (args) => {
+    const path = args[0];
+    if (!path) return 'Usage: basename <path>';
+
+    const parts = path.split('/');
+    return parts[parts.length - 1];  // Возвращает последний элемент пути
+  },
+
+  dirname: (args) => {
+    const path = args[0];
+    if (!path) return 'Usage: dirname <path>';
+
+    const parts = path.split('/');
+    parts.pop();  // Убираем последний элемент
+    return parts.join('/');  // Собираем путь обратно
+  },
+
+  head: (args) => {
+    let lines = 10;
+    let fileName;
+
+    if (args[0] === '-n') {
+      if (args.length < 3) return 'Usage: head -n <number> <file>';
+      lines = parseInt(args[1]);
+      if (isNaN(lines) || lines <= 0) return 'Invalid number of lines';
+      fileName = args[2];
+    } else {
+      fileName = args[0];
+      if (!fileName) return 'Usage: head [-n <number>] <file>';
+    }
+
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
+    if (dir[fileName] === undefined) return `File ${fileName} not found.`;
+
+    const content = dir[fileName] === null ? '' : dir[fileName];
+    const allLines = content.split('\n');
+    return allLines.slice(0, lines).join('\n');
+  },
+
+  tail: (args) => {
+    let lines = 10;
+    let fileName;
+
+    if (args[0] === '-n') {
+      if (args.length < 3) return 'Usage: tail -n <number> <file>';
+      lines = parseInt(args[1]);
+      if (isNaN(lines) || lines <= 0) return 'Invalid number of lines';
+      fileName = args[2];
+    } else {
+      fileName = args[0];
+      if (!fileName) return 'Usage: tail [-n <number>] <file>';
+    }
+
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
+    if (dir[fileName] === undefined) return `File ${fileName} not found.`;
+
+    const content = dir[fileName] === null ? '' : dir[fileName];
+    const allLines = content.split('\n');
+    return allLines.slice(-lines).join('\n');
+  },
+
+  wc: (args) => {
+    const fileName = args[0];
+    if (!fileName) return 'Usage: wc <file>';
+
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
+    if (dir[fileName] === undefined) return `File ${fileName} not found.`;
+
+    const content = dir[fileName] === null ? '' : dir[fileName];
+    const lines = content === '' ? 0 : content.split('\n').length;
+    const words = content.split(/\s+/).filter(word => word !== '').length;
+    const chars = content.length;
+
+    return `${lines}\t${words}\t${chars}\t${fileName}`;
+  },
+
+  sort: (args) => {
+    const fileName = args[0];
+    if (!fileName) return 'Usage: sort <file>';
+
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
+    if (dir[fileName] === undefined) return `File ${fileName} not found.`;
+
+    const content = dir[fileName] === null ? '' : dir[fileName];
+    const lines = content.split('\n');
+    return lines.sort().join('\n');
+  },
+
+  uniq: (args) => {
+    const fileName = args[0];
+    if (!fileName) return 'Usage: uniq <file>';
+
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
+    if (dir[fileName] === undefined) return `File ${fileName} not found.`;
+
+    const content = dir[fileName] === null ? '' : dir[fileName];
+    const lines = content.split('\n');
+    const result = [];
+
+    let prevLine = null;
+    for (const line of lines) {
+      if (line !== prevLine) {
+        result.push(line);
+        prevLine = line;
+      }
+    }
+
+    return result.join('\n');
+  },
+
 
   help: () => {
     return `Available commands:
@@ -184,6 +400,16 @@ const commands = {
 - cp <source> <destination>: Copy a file
 - mv <source> <destination>: Move or rename a file
 - rmdir <directory>: Remove a directory
+- pwd: Display the full path of the current working directory
+- cat <file>: Display the contents of a file
+- echo : Write text to a file
+- basename <path>: Extract the file name from the given path
+- dirname <path>: Extract the directory path from the given path
+- head [-n <number>] <file>: Show first lines of a file
+- tail [-n <number>] <file>: Show last lines of a file
+- wc <file>: Count lines, words, and characters in a file
+- sort <file>: Sort lines in alphabetical order
+- uniq <file>: Remove consecutive duplicate lines
 - help: Show this help message`;
   },
 

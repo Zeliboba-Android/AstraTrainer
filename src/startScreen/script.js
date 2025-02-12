@@ -51,4 +51,33 @@ commandInput.addEventListener('keydown', (e) => {
     }
   }
 });
+// Функция для прокрутки терминала вниз
+function scrollTerminalToBottom() {
+  const terminal = document.getElementById('terminal');
+  terminal.scrollTop = terminal.scrollHeight;
+}
 
+// Пример добавления новой строки в терминал
+function addNewLineToTerminal(text) {
+  const terminalOutput = document.getElementById('terminal-output');
+  terminalOutput.textContent += text;
+  scrollTerminalToBottom(); // Прокручиваем терминал вниз
+}
+
+// Пример использования
+document.getElementById('run-btn').addEventListener('click', () => {
+  const commandInput = document.getElementById('command-input');
+  const command = commandInput.value;
+  addNewLineToTerminal(`${command}`);
+  commandInput.value = ''; // Очищаем поле ввода
+});
+
+// Обработка нажатия Enter в поле ввода
+document.getElementById('command-input').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    const commandInput = document.getElementById('command-input');
+    const command = commandInput.value;
+    addNewLineToTerminal(`${command}`);
+    commandInput.value = ''; // Очищаем поле ввода
+  }
+});

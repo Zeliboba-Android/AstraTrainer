@@ -8,6 +8,7 @@
 #astra-logo {
     width: 100px; /* Ширина логотипа */
     height: auto; /* Сохранение пропорций */
+    margin-right: 20px;
 }
 button {
     margin-left: 10px;
