@@ -4,7 +4,7 @@ let completedCommands = JSON.parse(localStorage.getItem('lesson1CompletedCommand
 let currentDirectory = localStorage.getItem('currentDirectory') || '/';
 let fileSystem = JSON.parse(localStorage.getItem('fileSystem')) || {
   '/': ['Documents', 'file1.txt', 'file2.txt'],
-  '/Documents': ['file.pdf', 'files']
+  '/Documents': ['file3.txt', 'file4.txt']
 };
 function saveState() {
   localStorage.setItem('currentDirectory', currentDirectory);
@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
   currentDirectory = localStorage.getItem('currentDirectory') || '/';
   fileSystem = JSON.parse(localStorage.getItem('fileSystem')) || {
     '/': ['Documents', 'file1.txt', 'file2.txt'],
-    '/Documents': []
+    '/Documents': ['file3.txt', 'file4.txt']
   };
 
   // Восстанавливаем статус урока
