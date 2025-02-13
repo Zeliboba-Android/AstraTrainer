@@ -134,3 +134,47 @@ button:hover {
 #clear-btn {
     background-color: #f44336;
 }
+.firework {
+    position: fixed;
+    width: 6px;
+    height: 6px;
+    background: #ff0;
+    border-radius: 50%;
+    animation: fireworks 2.5s ease-out;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+@keyframes fireworks {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-300px) scale(0);
+        opacity: 0;
+    }
+}
+
+.firework:nth-child(3n) { background: #f00; }
+.firework:nth-child(3n+1) { background: #0f0; }
+.firework:nth-child(3n+2) { background: #00f; }
+@keyframes zoomInOut {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+    20% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+    80% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1.5);
+        opacity: 0;
+        visibility: hidden; // Добавляем, чтобы текст не "мигал" в конце
+    }
+}

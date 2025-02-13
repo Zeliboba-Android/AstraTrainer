@@ -33,7 +33,96 @@ function resolvePath(path) {
   }
   return dir;
 }
-
+const commandHelp = {
+  ls: {
+    description: "List directory contents",
+    syntax: "ls",
+    examples: ["ls"]
+  },
+  cd: {
+    description: "Change current directory",
+    syntax: "cd <directory>",
+    examples: ["cd /home", "cd ..", "cd subdir"]
+  },
+  mkdir: {
+    description: "Create new directory",
+    syntax: "mkdir <directory>",
+    examples: ["mkdir new_folder"]
+  },
+  rm: {
+    description: "Remove files or directories",
+    syntax: "rm [-r] <target>",
+    options: ["-r: Recursively remove directories"],
+    examples: ["rm file.txt", "rm -r old_dir"]
+  },
+  cp: {
+    description: "Copy files",
+    syntax: "cp <source> <destination>",
+    examples: ["cp file.txt backup.txt"]
+  },
+  mv: {
+    description: "Move/rename files or directories",
+    syntax: "mv <source> <destination>",
+    examples: ["mv old.txt new.txt", "mv file.txt /backup/"]
+  },
+  rmdir: {
+    description: "Remove empty directory",
+    syntax: "rmdir <directory>",
+    examples: ["rmdir empty_dir"]
+  },
+  pwd: {
+    description: "Print current directory path",
+    syntax: "pwd",
+    examples: ["pwd"]
+  },
+  touch: {
+    description: "Create new empty file",
+    syntax: "touch <filename>",
+    examples: ["touch new_file.txt"]
+  },
+  cat: {
+    description: "Display file contents",
+    syntax: "cat <file>",
+    examples: ["cat document.txt"]
+  },
+  echo: {
+    description: "Write text to file (use >> to append)",
+    syntax: 'echo "text" >> <file>',
+    examples: ['echo "Hello" >> greeting.txt', 'echo "Line1\\nLine2" >> multi.txt']
+  },
+  head: {
+    description: "Show first lines of file",
+    syntax: "head [-n <number>] <file>",
+    options: ["-n: Number of lines to show (default: 10)"],
+    examples: ["head log.txt", "head -n 5 data.csv"]
+  },
+  tail: {
+    description: "Show last lines of file",
+    syntax: "tail [-n <number>] <file>",
+    options: ["-n: Number of lines to show (default: 10)"],
+    examples: ["tail log.txt", "tail -n 20 access.log"]
+  },
+  wc: {
+    description: "Count lines, words and characters",
+    syntax: "wc <file>",
+    examples: ["wc document.txt"]
+  },
+  sort: {
+    description: "Sort lines alphabetically",
+    syntax: "sort <file>",
+    examples: ["sort names.txt"]
+  },
+  uniq: {
+    description: "Remove consecutive duplicates",
+    syntax: "uniq <file>",
+    examples: ["uniq duplicates.txt"]
+  },
+  clear: {
+    description: "Reset terminal and filesystem",
+    syntax: "clear",
+    examples: ["clear"]
+  }
+};
 const commands = {
   ls: () => {
     const dir = resolvePath(currentPath);
@@ -390,27 +479,28 @@ const commands = {
   },
 
 
-  help: () => {
-    return `Available commands:
-- ls: List directory contents
-- cd <directory>: Change directory
-- mkdir <directory>: Create a new directory
-- touch <file>: Create a new file
-- rm <file>: Remove a file
-- cp <source> <destination>: Copy a file
-- mv <source> <destination>: Move or rename a file
-- rmdir <directory>: Remove a directory
-- pwd: Display the full path of the current working directory
-- cat <file>: Display the contents of a file
-- echo : Write text to a file
-- basename <path>: Extract the file name from the given path
-- dirname <path>: Extract the directory path from the given path
-- head [-n <number>] <file>: Show first lines of a file
-- tail [-n <number>] <file>: Show last lines of a file
-- wc <file>: Count lines, words, and characters in a file
-- sort <file>: Sort lines in alphabetical order
-- uniq <file>: Remove consecutive duplicate lines
-- help: Show this help message`;
+  help: (args) => {
+    if (args.length === 0) {
+      return `Available commands:\n${Object.keys(commandHelp).join(", ")}\n\n` +
+        "Type 'help <command>' for detailed info about a command";
+    }
+
+    const cmd = args[0];
+    if (!commandHelp[cmd]) return `No help available for '${cmd}'`;
+
+    const helpInfo = commandHelp[cmd];
+    let response = `${cmd}: ${helpInfo.description}\n`;
+    response += `Syntax: ${helpInfo.syntax}\n`;
+
+    if (helpInfo.options) {
+      response += `Options:\n${helpInfo.options.join("\n")}\n`;
+    }
+
+    if (helpInfo.examples) {
+      response += `Examples:\n${helpInfo.examples.map(e => `  ${e}`).join("\n")}`;
+    }
+
+    return response;
   },
 
   clear: () => {
