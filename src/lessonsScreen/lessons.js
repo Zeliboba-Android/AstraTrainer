@@ -1,7 +1,15 @@
 let lesson1Status = localStorage.getItem('lesson1Status') || 'not-started';
 const requiredCommands = ['cd Documents', 'mkdir MyFolder', 'ls'];
 let completedCommands = JSON.parse(localStorage.getItem('lesson1CompletedCommands')) || [];
-
+let currentDirectory = localStorage.getItem('currentDirectory') || '/';
+let fileSystem = JSON.parse(localStorage.getItem('fileSystem')) || {
+  '/': ['Documents', 'file1.txt', 'file2.txt'],
+  '/Documents': ['file.pdf', 'files']
+};
+function saveState() {
+  localStorage.setItem('currentDirectory', currentDirectory);
+  localStorage.setItem('fileSystem', JSON.stringify(fileSystem));
+}
 function createFireworks() {
   const colors = ['#ff0', '#f00', '#0f0', '#00f', '#fff'];
   const fireworksCount = 50;
@@ -67,61 +75,98 @@ function clearTerminal() {
 }
 
 function handleCommand(command) {
-  // Пример обработки команд
-  const commands = {
-    'help': 'Available commands: help, cd, mkdir, ls, clear',
-    'cd Documents': 'Changed directory to "Documents".',
-    'mkdir MyFolder': 'Directory "MyFolder" created.',
-    'ls': 'MyFolder\nfile1.txt\nfile2.txt',
-    'clear': '', // Очистка терминала уже обрабатывается в clearTerminal()
-  };
+  let result = '';
 
-  if (commands[command]) {
-    return commands[command];
-  } else {
-    return `Command not found: ${command}`;
+  switch (command.toLowerCase()) {
+    case 'help':
+      result = 'Available commands: help, cd, mkdir, ls, clear';
+      break;
+
+    case 'cd documents':
+      if (currentDirectory === '/') {
+        currentDirectory = '/Documents';
+        result = 'Changed directory to "Documents".';
+      } else {
+        result = 'Directory not found.';
+      }
+      break;
+
+    case 'mkdir myfolder':
+      if (currentDirectory === '/Documents') {
+        if (!fileSystem['/Documents'].includes('MyFolder')) {
+          fileSystem['/Documents'].push('MyFolder');
+          result = 'Directory "MyFolder" created.';
+        } else {
+          result = 'Directory already exists.';
+        }
+      } else {
+        result = 'You must be in "Documents" to create a directory here.';
+      }
+      break;
+
+    case 'ls':
+      result = fileSystem[currentDirectory].join('\n');
+      break;
+
+    case 'clear':
+      result = '';
+      break;
+
+    default:
+      result = `Command not found: ${command}`;
   }
+
+  // Сохраняем состояние после каждой команды
+  saveState();
+  return result;
 }
-
 function updateLessonStatus(command) {
-  // Нормализация ввода: удаление лишних пробелов и приведение к нижнему регистру
   const normalizedCommand = command.trim().replace(/\s+/g, ' ').toLowerCase();
-  const isRequired = requiredCommands.some(cmd =>
-    cmd.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedCommand
-  );
+  const expectedIndex = completedCommands.length;
 
-  if (isRequired && !completedCommands.some(cmd =>
-    cmd.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedCommand
-  )) {
-    // Находим оригинальную команду из requiredCommands
-    const originalCommand = requiredCommands.find(cmd =>
-      cmd.trim().replace(/\s+/g, ' ').toLowerCase() === normalizedCommand
-    );
+  if (expectedIndex >= requiredCommands.length) return;
 
-    completedCommands.push(originalCommand);
-    localStorage.setItem('lesson1CompletedCommands', JSON.stringify(completedCommands));
+  const expectedCommand = requiredCommands[expectedIndex].toLowerCase();
 
-    if (lesson1Status === 'not-started') {
-      lesson1Status = 'in-progress';
-      localStorage.setItem('lesson1Status', lesson1Status);
+  if (normalizedCommand === expectedCommand) {
+    // Проверяем состояние системы для критических команд
+    let isValid = true;
+
+    switch (expectedCommand) {
+      case 'cd documents':
+        isValid = currentDirectory === '/Documents';
+        break;
+      case 'mkdir myfolder':
+        isValid = fileSystem['/Documents'].includes('MyFolder');
+        break;
+      case 'ls':
+        isValid = currentDirectory === '/Documents' &&
+          fileSystem['/Documents'].includes('MyFolder');
+        break;
     }
 
-    if (completedCommands.length === requiredCommands.length) {
-      lesson1Status = 'completed';
-      localStorage.setItem('lesson1Status', lesson1Status);
+    if (isValid) {
+      completedCommands.push(requiredCommands[expectedIndex]);
+      localStorage.setItem('lesson1CompletedCommands', JSON.stringify(completedCommands));
 
-      // Запускаем салют и поздравление одновременно
-      createFireworks();
-      showCongratulations();
-    }
+      // Обновляем статус урока
+      if (lesson1Status === 'not-started') {
+        lesson1Status = 'in-progress';
+        localStorage.setItem('lesson1Status', lesson1Status);
+      }
 
-    // Обновляем DOM только если элемент существует
-    const statusElement = document.getElementById('lesson1-status');
-    if (statusElement) {
-      statusElement.textContent =
-        lesson1Status === 'completed' ? 'Completed' :
-          lesson1Status === 'in-progress' ? 'In Progress' : 'Not Started';
-      statusElement.className = `status ${lesson1Status}`;
+      if (completedCommands.length === requiredCommands.length) {
+        lesson1Status = 'completed';
+        localStorage.setItem('lesson1Status', lesson1Status);
+        createFireworks();
+        showCongratulations();
+      }
+
+      const statusElement = document.getElementById('lesson1-status');
+      if (statusElement) {
+        statusElement.textContent = lesson1Status === 'completed' ? 'Completed' : 'In Progress';
+        statusElement.className = `status ${lesson1Status}`;
+      }
     }
   }
 }
@@ -148,6 +193,14 @@ function showCongratulations() {
   }, 4000); // Время должно совпадать с продолжительностью анимации
 }
 document.addEventListener('DOMContentLoaded', function() {
+  // Восстанавливаем состояние
+  currentDirectory = localStorage.getItem('currentDirectory') || '/';
+  fileSystem = JSON.parse(localStorage.getItem('fileSystem')) || {
+    '/': ['Documents', 'file1.txt', 'file2.txt'],
+    '/Documents': []
+  };
+
+  // Восстанавливаем статус урока
   const statusElement = document.getElementById('lesson1-status');
   if (statusElement) {
     const savedStatus = localStorage.getItem('lesson1Status') || 'not-started';
@@ -166,3 +219,23 @@ document.addEventListener('DOMContentLoaded', function() {
     statusElement.className = `status ${displayStatus}`;
   }
 });
+function resetLesson() {
+  currentDirectory = '/';
+  fileSystem['/'] = ['Documents', 'file1.txt', 'file2.txt'];
+  fileSystem['/Documents'] = [];
+  completedCommands = [];
+  lesson1Status = 'not-started';
+
+  localStorage.removeItem('currentDirectory');
+  localStorage.removeItem('fileSystem');
+  localStorage.removeItem('lesson1Status');
+  localStorage.removeItem('lesson1CompletedCommands');
+
+  const statusElement = document.getElementById('lesson1-status');
+  if (statusElement) {
+    statusElement.textContent = 'Not Started';
+    statusElement.className = 'status not-started';
+  }
+
+  clearTerminal();
+}
