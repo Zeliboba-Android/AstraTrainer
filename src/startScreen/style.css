@@ -19,6 +19,8 @@ body {
 
 #terminal-output {
     white-space: pre-wrap;
+    overflow-y: auto; /* Прокрутка для вывода терминала */
+    height: 100%; /* Занимает всю доступную высоту */
 }
 
 #input-section {

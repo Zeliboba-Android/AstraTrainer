@@ -1,14 +1,18 @@
-let lesson1Status = localStorage.getItem('lesson1Status') || 'not-started';
+// Изменяем ключи localStorage для изоляции уроков
+const LESSON_STORAGE_PREFIX = 'lesson1_';
+
+let lesson1Status = localStorage.getItem(LESSON_STORAGE_PREFIX + 'Status') || 'not-started';
 const requiredCommands = ['cd Documents', 'mkdir MyFolder', 'ls'];
-let completedCommands = JSON.parse(localStorage.getItem('lesson1CompletedCommands')) || [];
-let currentDirectory = localStorage.getItem('currentDirectory') || '/';
-let fileSystem = JSON.parse(localStorage.getItem('fileSystem')) || {
+let completedCommands = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'CompletedCommands')) || [];
+let currentDirectory = localStorage.getItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory') || '/';
+let fileSystem = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'FileSystem')) || {
   '/': ['Documents', 'file1.txt', 'file2.txt'],
   '/Documents': ['file3.txt', 'file4.txt']
 };
+
 function saveState() {
-  localStorage.setItem('currentDirectory', currentDirectory);
-  localStorage.setItem('fileSystem', JSON.stringify(fileSystem));
+  localStorage.setItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory', currentDirectory);
+  localStorage.setItem(LESSON_STORAGE_PREFIX + 'FileSystem', JSON.stringify(fileSystem));
 }
 function createFireworks() {
   const colors = ['#ff0', '#f00', '#0f0', '#00f', '#fff'];
@@ -193,9 +197,9 @@ function showCongratulations() {
   }, 4000); // Время должно совпадать с продолжительностью анимации
 }
 document.addEventListener('DOMContentLoaded', function() {
-  // Восстанавливаем состояние
-  currentDirectory = localStorage.getItem('currentDirectory') || '/';
-  fileSystem = JSON.parse(localStorage.getItem('fileSystem')) || {
+  // Восстанавливаем состояние только для урока
+  currentDirectory = localStorage.getItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory') || '/';
+  fileSystem = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'FileSystem')) || {
     '/': ['Documents', 'file1.txt', 'file2.txt'],
     '/Documents': ['file3.txt', 'file4.txt']
   };
@@ -221,15 +225,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 function resetLesson() {
   currentDirectory = '/';
-  fileSystem['/'] = ['Documents', 'file1.txt', 'file2.txt'];
-  fileSystem['/Documents'] = [];
+  fileSystem = {
+    '/': ['Documents', 'file1.txt', 'file2.txt'],
+    '/Documents': ['file3.txt', 'file4.txt']
+  };
   completedCommands = [];
   lesson1Status = 'not-started';
 
-  localStorage.removeItem('currentDirectory');
-  localStorage.removeItem('fileSystem');
-  localStorage.removeItem('lesson1Status');
-  localStorage.removeItem('lesson1CompletedCommands');
+  // Удаляем только данные урока
+  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory');
+  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'FileSystem');
+  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'Status');
+  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'CompletedCommands');
 
   const statusElement = document.getElementById('lesson1-status');
   if (statusElement) {

@@ -1,37 +1,87 @@
 let fileSystem;
 let currentPath;
-
-// Sample file system structure
+let virtualUsers;
+let currentUser = null;
+// Инициализация файловой системы
 (function loadState() {
   const savedFileSystem = localStorage.getItem('fileSystem');
   const savedCurrentPath = localStorage.getItem('currentPath');
+  const savedVirtualUsers = localStorage.getItem('virtualUsers');
+  const savedCurrentUser = localStorage.getItem('currentUser'); // Загружаем текущего пользователя
 
-  fileSystem = savedFileSystem ? JSON.parse(savedFileSystem) : {
-    '/': {
-      'home': {
-        'user': {}
-      }
-    }
-  };
-
+  fileSystem = savedFileSystem ? JSON.parse(savedFileSystem) : { /* ... */ };
   currentPath = savedCurrentPath || '/';
+  virtualUsers = savedVirtualUsers ? JSON.parse(savedVirtualUsers) : {};
+  currentUser = savedCurrentUser ? JSON.parse(savedCurrentUser) : null; // Инициализируем текущего пользователя
 })();
+(function restoreMainState() {
+  if(localStorage.getItem('mainFileSystem')) {
+    fileSystem = JSON.parse(localStorage.getItem('mainFileSystem'));
+    currentPath = localStorage.getItem('mainCurrentPath') || '/';
 
+    localStorage.removeItem('mainFileSystem');
+    localStorage.removeItem('mainCurrentPath');
+    saveState();
+  }
+})();
 function saveState() {
   localStorage.setItem('fileSystem', JSON.stringify(fileSystem));
   localStorage.setItem('currentPath', currentPath);
+  localStorage.setItem('virtualUsers', JSON.stringify(virtualUsers));
+  localStorage.setItem('currentUser', JSON.stringify(currentUser)); // Сохраняем текущего пользователя
+}
+
+function parseFields(fieldStr) {
+  return fieldStr.split(',')
+    .flatMap(range => {
+      if (range.includes('-')) {
+        const [start, end] = range.split('-').map(Number);
+        return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+      }
+      return Number(range);
+    })
+    .filter(n => !isNaN(n) && n > 0);
 }
 
 function resolvePath(path) {
   const pathParts = path.split('/').filter(Boolean);
   let dir = fileSystem;
   for (const part of pathParts) {
-    if (dir[part] === undefined) {
-      return null;
-    }
+    if (dir[part] === undefined) return null;
     dir = dir[part];
   }
   return dir;
+}
+// Генератор случайных MAC-адресов
+function randomMAC() {
+  return 'XX:XX:XX:XX:XX:XX'.replace(/X/g, () =>
+    Math.floor(Math.random() * 16).toString(16).toUpperCase()
+  );
+}
+
+// Генератор случайных IP-адресов
+function randomIP() {
+  return `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`;
+}
+
+// Состояние сетевой статистики
+const networkState = {
+  rxBytes: Math.floor(Math.random() * 1e6),
+  txBytes: Math.floor(Math.random() * 1e6),
+  rxErrors: Math.floor(Math.random() * 100),
+  txErrors: Math.floor(Math.random() * 100),
+  connections: []
+};
+
+// Обновление состояния сетевых соединений
+function updateNetworkState() {
+  networkState.connections = Array.from({length: 5}, (_, i) => ({
+    proto: Math.random() > 0.5 ? 'tcp' : 'udp',
+    local: `${randomIP()}:${Math.floor(1000 + Math.random() * 60000)}`,
+    foreign: `${randomIP()}:${Math.floor(1000 + Math.random() * 60000)}`,
+    state: ['ESTABLISHED', 'LISTEN', 'TIME_WAIT'][Math.floor(Math.random() * 3)],
+    pid: Math.floor(1000 + Math.random() * 9000)
+  }));
 }
 const commandHelp = {
   ls: {
@@ -121,6 +171,72 @@ const commandHelp = {
     description: "Reset terminal and filesystem",
     syntax: "clear",
     examples: ["clear"]
+  },
+  cut: {
+    description: "Extract columns from text",
+    syntax: "cut -d<delimiter> -f<fields> <file>",
+    options: [
+      "-d: Specify delimiter (default: tab)",
+      "-f: Select fields (columns) to extract"
+    ],
+    examples: [
+      "cut -d':' -f1 file.txt",
+      "cut -f2 data.csv"
+    ]
+  },
+  ping: {
+    description: "Эмуляция проверки доступности хоста",
+    syntax: "ping <host>",
+    examples: ["ping google.com", "ping 127.0.0.1"]
+  },
+  ifconfig: {
+    description: "Вывод фиктивных настроек сетевых интерфейсов",
+    syntax: "ifconfig",
+    examples: ["ifconfig"]
+  },
+  netstat: {
+    description: "Вывод фиктивных сетевых соединений",
+    syntax: "netstat",
+    examples: ["netstat"]
+  },
+  grep: {
+    description: "Поиск текста в файле",
+    syntax: 'grep "pattern" <file>',
+    options: [
+      "-i: Игнорировать регистр (не реализовано)",
+      "-v: Инвертировать совпадения (не реализовано)"
+    ],
+    examples: [
+      'grep "error" log.txt',
+      'grep "TODO" notes.txt'
+    ]
+  },
+  adduser: {
+    description: "Create virtual user",
+    syntax: "adduser <username>",
+    examples: ["adduser john"]
+  },
+  passwd: {
+    description: "Change user password",
+    syntax: "passwd <username> <newpassword>",
+    examples: ["passwd john 12345"]
+  },
+  logout: {
+    description: "End virtual session",
+    syntax: "logout",
+    examples: ["logout"]
+  },
+  login: {
+    description: "Log in as a virtual user",
+    syntax: "login <username> <password>",
+    examples: [
+      "login john 12345"
+    ]
+  },
+  whoami: {
+    description: "Display the current logged-in user",
+    syntax: "whoami",
+    examples: ["whoami"]
   }
 };
 const commands = {
@@ -166,20 +282,16 @@ const commands = {
     if (!dir) return 'Directory not found.';
 
     if (dir[dirName] !== undefined) {
-      // Если значение равно null (т.е. это файл), сообщаем, что не можем создать директорию с таким именем
       if (dir[dirName] === null) {
-        return `Error: A file named ${dirName} already exists. Cannot create a directory with the same name.`;
+        return `Cannot create directory - file exists: ${dirName}`;
       }
-
-      return `Directory ${dirName} already exists.`;
+      return `Directory exists: ${dirName}`;
     }
 
-    // Создаем директорию, если имя свободно
     dir[dirName] = {};
     saveState();
-    return `Directory ${dirName} created.`;
+    return `Directory created: ${dirName}`;
   },
-
 
   rm: (args) => {
     let recursive = false;
@@ -441,7 +553,59 @@ const commands = {
 
     return `${lines}\t${words}\t${chars}\t${fileName}`;
   },
+  grep: (args) => {
+    let invertMatch = false;
+    let ignoreCase = false;
 
+    // Обработка флагов
+    while (args[0]?.startsWith('-')) {
+      if (args[0] === '-v') {
+        invertMatch = true;
+        args = args.slice(1);
+      } else if (args[0] === '-i') {
+        ignoreCase = true;
+        args = args.slice(1);
+      } else {
+        return `Invalid option: ${args[0]}`;
+      }
+    }
+
+    if (args.length < 2) return 'Usage: grep [-v] [-i] "pattern" <file>';
+
+    const pattern = args[0].replace(/^"(.*)"$/, '$1');
+    const fileName = args[1];
+
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found';
+    if (!dir[fileName] || dir[fileName] === null) return `File ${fileName} not found`;
+
+    const content = dir[fileName];
+    const lines = content.split('\n');
+
+    // Создаем регулярное выражение с учетом регистра
+    const regex = new RegExp(
+      pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), // Экранируем спецсимволы
+      ignoreCase ? 'i' : ''
+    );
+
+    const results = lines.filter(line => {
+      const match = regex.test(line);
+      return invertMatch ? !match : match;
+    });
+
+    if (results.length === 0) {
+      const flags = [];
+      if (invertMatch) flags.push('-v');
+      if (ignoreCase) flags.push('-i');
+      const flagsStr = flags.length ? ` with ${flags.join(' ')}` : '';
+      return `No matches found for "${pattern}"${flagsStr}`;
+    }
+
+    return results.map((line, index) => {
+      const lineNumber = (lines.indexOf(line) + 1).toString().padStart(4);
+      return `${lineNumber}: ${line}`;
+    }).join('\n');
+  },
   sort: (args) => {
     const fileName = args[0];
     if (!fileName) return 'Usage: sort <file>';
@@ -478,7 +642,173 @@ const commands = {
     return result.join('\n');
   },
 
+  cut : (args) => {
+    let delimiter = '\t';
+    let fields = [];
+    let fileName = '';
 
+    // Разбор аргументов
+    for (let i = 0; i < args.length; i++) {
+      const arg = args[i];
+      if (arg === '-d') {
+        delimiter = args[++i]?.replace(/['"]/g, '') || ''; // Удаляем кавычки, если есть
+      } else if (arg.startsWith('-d')) {
+        delimiter = arg.slice(2).replace(/['"]/g, '');
+      } else if (arg === '-f') {
+        fields = parseFields(args[++i]);
+      } else if (arg.startsWith('-f')) {
+        fields = parseFields(arg.slice(2));
+      } else {
+        fileName = arg;
+      }
+    }
+    if (!fileName || fields.length === 0) {
+      return 'Usage: cut -d<delimiter> -f<fields> <file>';
+    }
+
+    // Получение содержимого файла
+    const dir = resolvePath(currentPath);
+    if (!dir) return 'Directory not found.';
+    if (dir[fileName] === undefined) return `File ${fileName} not found.`;
+
+    const content = dir[fileName] === null ? '' : dir[fileName];
+    const lines = content.split('\n').filter(line => line.trim() !== ''); // Убираем пустые строки
+
+    // Обработка каждой строки
+    const result = lines.map(line => {
+      const parts = line.split(delimiter);
+      return fields
+        .map(f => parts[f - 1] || '') // Индексы с 1
+        .join(delimiter);
+    });
+
+    return result.join('\n');
+  },
+  ifconfig: () => {
+    const mac = randomMAC();
+    const ip = randomIP();
+    const rx = Math.floor(networkState.rxBytes += Math.random() * 1000);
+    const tx = Math.floor(networkState.txBytes += Math.random() * 1000);
+
+    return `
+eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet ${ip}  netmask 255.255.255.0  broadcast 192.168.1.255
+        inet6 fe80::2${mac.replace(/:/g, '')}  prefixlen 64  scopeid 0x20<link>
+        ether ${mac}  txqueuelen 1000  (Ethernet)
+        RX packets ${rx}  bytes ${rx * 1024} (${(rx/1024).toFixed(1)} KiB)
+        RX errors ${networkState.rxErrors}  dropped 0  overruns 0  frame 0
+        TX packets ${tx}  bytes ${tx * 1024} (${(tx/1024).toFixed(1)} KiB)
+        TX errors ${networkState.txErrors}  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)`.trim();
+  },
+
+  netstat: () => {
+    updateNetworkState();
+    const connections = networkState.connections.map(conn =>
+      `${conn.proto}   ${conn.local.padEnd(21)} ${conn.foreign.padEnd(21)} ${conn.state}`
+    ).join('\n');
+
+    return `
+Active Internet connections
+Proto Local Address          Foreign Address        State
+${connections}
+
+Active UNIX domain sockets
+Address  Type   Recv-Q Send-Q  Inode     PID/Program name
+@/tmp/.X11-unix/X0 stream      0      0  ${Math.floor(100000 + Math.random() * 900000)} @/tmp/.X11-unix/X0
+@/tmp/dbus-XXXXXX stream      0      0  ${Math.floor(100000 + Math.random() * 900000)} @/tmp/dbus-XXXXXX`.trim();
+  },
+
+  ping: function(args, updateOutput) {
+    return new Promise(resolve => {
+      const host = args[0] || 'localhost';
+      const packetLoss = Math.random() < 0.1 ? 1 : 0; // 10% chance of packet loss
+      const times = [];
+
+      updateOutput(`PING ${host} (127.0.0.1) 56(84) bytes of data.`);
+
+      const pingInterval = setInterval(() => {
+        if(times.length >= 5) {
+          clearInterval(pingInterval);
+          const stats = `
+--- ${host} ping statistics ---
+${5} packets transmitted, ${5 - packetLoss} received, ${packetLoss * 20}% packet loss
+rtt min/avg/max/mdev = ${Math.min(...times).toFixed(3)}/${(times.reduce((a,b) => a + b, 0)/times.length).toFixed(3)}/${Math.max(...times).toFixed(3)}/${(Math.random()*5).toFixed(3)} ms`;
+
+          updateOutput(stats, true);
+          resolve();
+          return;
+        }
+
+        const time = (Math.random() * 100).toFixed(3);
+        times.push(parseFloat(time));
+
+        if(Math.random() > packetLoss) {
+          updateOutput(`64 bytes from ${host} (127.0.0.1): icmp_seq=${times.length} ttl=64 time=${time} ms`);
+        }
+      }, 1000);
+    });
+  },
+  adduser: (args) => {
+    const username = args[0];
+    if (!username) return 'Usage: adduser <username>';
+    if (virtualUsers[username]) return `User ${username} already exists.`;
+
+    // Создаем домашнюю директорию
+    const homePath = `/home/${username}`;
+    const pathParts = homePath.split('/').filter(p => p !== '');
+    let currentDir = fileSystem;
+    for (const part of pathParts) {
+      currentDir = currentDir[part] = currentDir[part] || {};
+    }
+
+    virtualUsers[username] = { password: '' };
+    saveState();
+    return `User ${username} created. Home directory: ${homePath}`;
+  },
+
+  passwd: (args) => {
+    const username = args[0];
+    const password = args[1];
+    if (!username || !password) return 'Usage: passwd <username> <password>';
+    if (!virtualUsers[username]) return `User ${username} not found.`;
+
+    virtualUsers[username].password = password;
+    saveState();
+    return `Password updated for ${username}.`;
+  },
+  login: (args) => {
+    const username = args[0];
+    const password = args[1];
+    if (!username || !password) return 'Usage: login <username> <password>';
+
+    if (!virtualUsers[username]) {
+      return `User ${username} not found.`;
+    }
+
+    if (virtualUsers[username].password !== password) {
+      return 'Incorrect password.';
+    }
+
+    // Устанавливаем текущего пользователя и переходим в его домашнюю директорию
+    currentUser = username;
+    currentPath = `/home/${username}`;
+    saveState();
+    return `Logged in as ${username}.`;
+  },
+  logout: () => {
+    currentPath = '/';
+    currentUser = null;
+    saveState();
+    return 'Virtual session terminated. Returning to root directory.';
+  },
+  whoami: () => {
+    return currentUser ? `Current user: ${currentUser}` : 'No user logged in.';
+  },
   help: (args) => {
     if (args.length === 0) {
       return `Available commands:\n${Object.keys(commandHelp).join(", ")}\n\n` +
@@ -504,10 +834,70 @@ const commands = {
   },
 
   clear: () => {
+    // Полный сброс основной файловой системы
     terminalOutput.innerHTML = 'Welcome to CLI Trainer!\nType "help" for commands.';
-    fileSystem = { '/': { 'home': { 'user': {} } } }; // Сброс FS
+    fileSystem = {
+      '/': {
+        'home': {
+          'user': {}
+        }
+      }
+    };
     currentPath = '/';
-    saveState();
+
+    // Очищаем только основное хранилище
+    localStorage.removeItem('fileSystem');
+    localStorage.removeItem('currentPath');
+
+    // Не трогаем данные уроков
     return '';
   }
 };
+const terminalOutput = document.getElementById('terminal-output');
+const terminalInput = document.getElementById('command-input');
+
+async function handleCommand(input) {
+  const [command, ...args] = input.trim().split(/\s+/);
+
+  const updateOutput = (text, isFinal = false) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    if(!isFinal) div.classList.add('ping-intermediate');
+    terminalOutput.appendChild(div);
+    terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  };
+
+  if (!command) return;
+
+  // Отображение введенной команды
+  const prompt = document.createElement('div');
+  prompt.className = 'terminal-prompt';
+  prompt.textContent = `$ ${input}`;
+  terminalOutput.appendChild(prompt);
+
+  try {
+    if (commands[command]) {
+      if (command === 'ping') {
+        await commands[command](args, updateOutput);
+      } else {
+        const result = commands[command](args);
+        if (result !== undefined) {
+          updateOutput(result.toString(), true);
+        }
+      }
+    } else {
+      updateOutput(`Command not found: ${command}`, true);
+    }
+  } catch (e) {
+    updateOutput(`Error: ${e.message}`, true);
+  }
+}
+
+// Инициализация терминала
+terminalInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    const input = terminalInput.value;
+    terminalInput.value = '';
+    handleCommand(input);
+  }
+});
