@@ -1,221 +1,121 @@
 body {
-    font-family: monospace;
-    background-color: #1a1917;
-    color: #d4d4d4;
+    font-family: 'DejaVu Sans Mono', monospace;
+    background-color: #2D2D2D;
+    color: #FFFFFF;
     margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    padding: 20px;
     height: 100vh;
-    overflow-y: auto;
+    box-sizing: border-box;
 }
-
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+#input-section .prompt {
+    margin-right: 10px; /* Отступ между приглашением и полем ввода */
+}
 .lesson-content {
     width: 100%;
-    height: 100%;
-    padding: 20px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
-.modal-content {
-    width: 100%;
     max-width: 800px;
-}
-#back-btn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 8px 16px;
-    background-color: #4caf50;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-#back-btn:hover {
-    background-color: #45a049;
-}
-
-h2 {
-    margin-bottom: 20px;
-    font-size: 24px;
-}
-
-p {
-    margin-bottom: 20px;
-}
-
-button {
-    padding: 8px 16px;
-    background-color: #4caf50;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-bottom: 20px;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
-/* Новая обертка для кнопки и подсказки */
-.hint-container {
-    display: flex;
-    align-items: center;
-}
-
-.hint-container button {
-    margin-right: 10px; /* Отступ между кнопкой и подсказкой */
-}
-
-.hint {
-    display: none;
-    transition: all 0.3s ease;
-    background-color: #1a1917;
-    border-radius: 5px;
-    color: #d4d4d4;
-    width: 800px; /* Задаем фиксированную ширину подсказки */
-}
-
-.hint.show {
-    display: block;
+    margin: 0 auto;
 }
 
 .terminal {
-    background-color: #1a1917;
-    padding: 10px;
-    border-radius: 5px;
-    width: 95%;
-    height: 60vh;
-    display: flex;
-    flex-direction: column;
+    background-color: #1E1E1E;
+    border: 1px solid #3C3C3C;
+    border-radius: 3px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+    margin-top: 20px;
 }
 
 #terminal-output {
-    white-space: pre-wrap;
-    flex-grow: 1;
+    padding: 15px;
+    height: 300px;
     overflow-y: auto;
-    border-bottom: 1px solid #333;
-    margin-bottom: 10px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.prompt {
+    color: #4E9A06;
+}
+
+.command {
+    color: #D3D7CF;
+}
+
+.output {
+    color: #888A85;
 }
 
 #input-section {
     display: flex;
-    padding: 10px;
-    background-color: #252526;
-    border-top: 1px solid #333;
+    align-items: center;
+    padding: 15px;
+    background-color: #2D2D2D;
+    border-top: 1px solid #3C3C3C;
 }
 
 #command-input {
     flex-grow: 1;
-    padding: 8px;
-    background-color: #1e1e1e;
-    color: #d4d4d4;
-    border: 1px solid #555;
+    background: none;
+    border: none;
+    color: #D3D7CF;
+    font-family: 'DejaVu Sans Mono', monospace;
+    font-size: 14px;
+    padding: 5px 0;
+    caret-color: #4E9A06;
+}
+
+#command-input:focus {
     outline: none;
 }
 
-#run-btn, #clear-btn {
+button {
+    background-color: #007acc;
+    color: #D3D7CF;
+    border: 1px solid #3C3C3C;
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-family: 'DejaVu Sans Mono', monospace;
     margin-left: 10px;
-    padding: 8px 16px;
+}
+
+
+#back-btn,
+#reset-btn {
+    position: static;
+    margin: 0;
+    transform: none;
+}
+#reset-btn{
+    background-color: #f44336;
+}
+.hint {
+    border-left: 3px solid #4E9A06;
+    padding-left: 10px;
+    margin: 15px 0;
+}
+
+.status {
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+.status.completed {
     background-color: #4caf50;
     color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
 }
 
-#clear-btn {
-    margin-top: 15px;
-    background-color: #f44336;
-}
-.firework {
-    position: fixed;
-    width: 6px;
-    height: 6px;
-    background: #ff0;
-    border-radius: 50%;
-    animation: fireworks 2.5s ease-out;
-    pointer-events: none;
-    z-index: 9999;
+.status.in-progress {
+    background-color: #ff9800;
+    color: #fff;
 }
 
-@keyframes fireworks {
-    0% {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(-300px) scale(0);
-        opacity: 0;
-    }
-}
-
-.firework:nth-child(3n) { background: #f00; }
-.firework:nth-child(3n+1) { background: #0f0; }
-.firework:nth-child(3n+2) { background: #00f; }
-@keyframes zoomInOut {
-    0% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0;
-    }
-    20% {
-        transform: translate(-50%, -50%) scale(1.2);
-        opacity: 1;
-    }
-    80% {
-        transform: translate(-50%, -50%) scale(1.2);
-        opacity: 1;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1.5);
-        opacity: 0;
-        visibility: hidden; // Добавляем, чтобы текст не "мигал" в конце
-    }
-}
-#reset-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 8px 16px;
+.status.not-started {
     background-color: #f44336;
     color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-#reset-btn:hover {
-    background-color: #d32f2f;
-}
-/* Стилизация скроллбара для WebKit-браузеров */
-.terminal::-webkit-scrollbar {
-    width: 8px;
-}
-
-.terminal::-webkit-scrollbar-track {
-    background: #252526;
-    border-radius: 5px;
-}
-
-.terminal::-webkit-scrollbar-thumb {
-    background: #4caf50;
-    border-radius: 5px;
-}
-
-.terminal::-webkit-scrollbar-thumb:hover {
-    background: #45a049;
-}
-
-/* Стилизация скроллбара для Firefox */
-.terminal {
-    scrollbar-width: thin;
-    scrollbar-color: #4caf50 #252526;
 }

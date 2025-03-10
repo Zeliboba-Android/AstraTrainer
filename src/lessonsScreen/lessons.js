@@ -1,178 +1,25 @@
-// Изменяем ключи localStorage для изоляции уроков
-const LESSON_STORAGE_PREFIX = 'lesson1_';
-
-let lesson1Status = localStorage.getItem(LESSON_STORAGE_PREFIX + 'Status') || 'not-started';
-const requiredCommands = ['cd Documents', 'mkdir MyFolder', 'ls'];
-let completedCommands = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'CompletedCommands')) || [];
-let currentDirectory = localStorage.getItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory') || '/';
-let fileSystem = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'FileSystem')) || {
-  '/': ['Documents', 'file1.txt', 'file2.txt'],
-  '/Documents': ['file3.txt', 'file4.txt']
-};
-
+// lessons.js (общие функции)
 function saveState() {
   localStorage.setItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory', currentDirectory);
   localStorage.setItem(LESSON_STORAGE_PREFIX + 'FileSystem', JSON.stringify(fileSystem));
 }
-function createFireworks() {
-  const colors = ['#ff0', '#f00', '#0f0', '#00f', '#fff'];
-  const fireworksCount = 50;
-
-  for (let i = 0; i < fireworksCount; i++) {
-    const firework = document.createElement('div');
-    firework.className = 'firework';
-
-    // Случайная позиция по горизонтали
-    const x = Math.random() * window.innerWidth;
-    const y = window.innerHeight + 100;
-
-    // Случайная задержка и продолжительность анимации
-    const delay = Math.random() * 0.5;
-    const duration = 1 + Math.random() * 0.5;
-
-    firework.style.left = `${x}px`;
-    firework.style.top = `${y}px`;
-    firework.style.animationDelay = `${delay}s`;
-    firework.style.animationDuration = `${duration}s`;
-    firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-
-    document.body.appendChild(firework);
-
-    // Удаляем элемент после завершения анимации
-    setTimeout(() => firework.remove(), (duration + 1) * 1000);
-  }
-}
-
-
-function showHint(hintId) {
-  const hint = document.getElementById(hintId);
-  hint.style.display = 'block';
-}
-
-function executeCommand() {
-  const input = document.getElementById('command-input').value.trim();
-  const output = document.getElementById('terminal-output');
-
-  if (input === '') {
-    return; // Не выполняем ничего, если команда пустая
-  }
-
-  // Добавляем введенную команду в вывод
-  output.textContent += `\n> ${input}\n`;
-
-  // Обработка команд
-  const response = handleCommand(input);
-  output.textContent += response + '\n';
-
-  // Очищаем поле ввода
-  document.getElementById('command-input').value = '';
-
-  // Прокручиваем терминал вниз
-  output.scrollTop = output.scrollHeight;
-
-  // Обновляем статус урока
-  updateLessonStatus(input);
-}
 
 function clearTerminal() {
-  document.getElementById('terminal-output').textContent = 'Welcome to CLI Trainer!\nType "help" for a list of commands.';
+  const output = document.getElementById('terminal-output');
+  output.innerHTML = `
+    <div class="prompt-line">
+      <span class="prompt">user@astra:~$</span>
+      <span class="output"> Welcome to Astra CLI Trainer!</span>
+    </div>
+    <div class="prompt-line">
+      <span class="prompt">user@astra:~$</span>
+      <span class="output"> Type 'help' for available commands</span>
+    </div>
+  `;
 }
 
-function handleCommand(command) {
-  let result = '';
-
-  switch (command.toLowerCase()) {
-    case 'help':
-      result = 'Available commands: help, cd, mkdir, ls, clear';
-      break;
-
-    case 'cd documents':
-      if (currentDirectory === '/') {
-        currentDirectory = '/Documents';
-        result = 'Changed directory to "Documents".';
-      } else {
-        result = 'Directory not found.';
-      }
-      break;
-
-    case 'mkdir myfolder':
-      if (currentDirectory === '/Documents') {
-        if (!fileSystem['/Documents'].includes('MyFolder')) {
-          fileSystem['/Documents'].push('MyFolder');
-          result = 'Directory "MyFolder" created.';
-        } else {
-          result = 'Directory already exists.';
-        }
-      } else {
-        result = 'You must be in "Documents" to create a directory here.';
-      }
-      break;
-
-    case 'ls':
-      result = fileSystem[currentDirectory].join('\n');
-      break;
-
-    case 'clear':
-      result = '';
-      break;
-
-    default:
-      result = `Command not found: ${command}`;
-  }
-
-  // Сохраняем состояние после каждой команды
-  saveState();
-  return result;
-}
-function updateLessonStatus(command) {
-  const normalizedCommand = command.trim().replace(/\s+/g, ' ').toLowerCase();
-  const expectedIndex = completedCommands.length;
-
-  if (expectedIndex >= requiredCommands.length) return;
-
-  const expectedCommand = requiredCommands[expectedIndex].toLowerCase();
-
-  if (normalizedCommand === expectedCommand) {
-    // Проверяем состояние системы для критических команд
-    let isValid = true;
-
-    switch (expectedCommand) {
-      case 'cd documents':
-        isValid = currentDirectory === '/Documents';
-        break;
-      case 'mkdir myfolder':
-        isValid = fileSystem['/Documents'].includes('MyFolder');
-        break;
-      case 'ls':
-        isValid = currentDirectory === '/Documents' &&
-          fileSystem['/Documents'].includes('MyFolder');
-        break;
-    }
-
-    if (isValid) {
-      completedCommands.push(requiredCommands[expectedIndex]);
-      localStorage.setItem('lesson1CompletedCommands', JSON.stringify(completedCommands));
-
-      // Обновляем статус урока
-      if (lesson1Status === 'not-started') {
-        lesson1Status = 'in-progress';
-        localStorage.setItem('lesson1Status', lesson1Status);
-      }
-
-      if (completedCommands.length === requiredCommands.length) {
-        lesson1Status = 'completed';
-        localStorage.setItem('lesson1Status', lesson1Status);
-        createFireworks();
-        showCongratulations();
-      }
-
-      const statusElement = document.getElementById('lesson1-status');
-      if (statusElement) {
-        statusElement.textContent = lesson1Status === 'completed' ? 'Completed' : 'In Progress';
-        statusElement.className = `status ${lesson1Status}`;
-      }
-    }
-  }
+function formatPath(path) {
+  return path === '/' ? '~' : path.replace(/^\/?(\w+)/, '~/$1');
 }
 
 function showCongratulations() {
@@ -186,63 +33,50 @@ function showCongratulations() {
   congrats.style.color = '#fff';
   congrats.style.textShadow = '0 0 10px #000';
   congrats.style.zIndex = '10000';
-  congrats.style.animation = 'zoomInOut 4s forwards'; // Добавили forwards
-  congrats.style.pointerEvents = 'none'; // Чтобы текст не мешал взаимодействию
+  congrats.style.animation = 'zoomInOut 4s forwards';
+  congrats.style.pointerEvents = 'none';
 
   document.body.appendChild(congrats);
 
-  // Удаляем сообщение только после завершения анимации
   setTimeout(() => {
     congrats.remove();
-  }, 4000); // Время должно совпадать с продолжительностью анимации
+  }, 4000);
 }
-document.addEventListener('DOMContentLoaded', function() {
-  // Восстанавливаем состояние только для урока
-  currentDirectory = localStorage.getItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory') || '/';
-  fileSystem = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'FileSystem')) || {
-    '/': ['Documents', 'file1.txt', 'file2.txt'],
-    '/Documents': ['file3.txt', 'file4.txt']
-  };
+function executeCommand() {
+  const input = document.getElementById('command-input').value.trim();
+  const output = document.getElementById('terminal-output');
 
-  // Восстанавливаем статус урока
-  const statusElement = document.getElementById('lesson1-status');
-  if (statusElement) {
-    const savedStatus = localStorage.getItem('lesson1Status') || 'not-started';
-    const completed = JSON.parse(localStorage.getItem('lesson1CompletedCommands')) || [];
+  if (!input) return;
 
-    let displayStatus = savedStatus;
-    if (completed.length === requiredCommands.length) {
-      displayStatus = 'completed';
-    } else if (completed.length > 0) {
-      displayStatus = 'in-progress';
-    }
+  const promptLine = document.createElement('div');
+  promptLine.className = 'prompt-line';
+  promptLine.innerHTML = `
+        <span class="prompt">user@astra:${formatPath(currentDirectory)}$</span>
+        <span class="command">${input}</span>
+      `;
+  output.appendChild(promptLine);
 
-    statusElement.textContent =
-      displayStatus === 'completed' ? 'Completed' :
-        displayStatus === 'in-progress' ? 'In Progress' : 'Not Started';
-    statusElement.className = `status ${displayStatus}`;
+  const response = handleCommand(input);
+
+  const outputLine = document.createElement('div');
+  outputLine.className = 'output';
+  outputLine.textContent = response;
+  output.appendChild(outputLine);
+
+  output.scrollTop = output.scrollHeight;
+  document.getElementById('command-input').value = '';
+  updateLessonStatus(input);
+}
+// Общие обработчики
+function handleKeyDown(event) {
+  if (event.key === 'Enter') {
+    executeCommand();
+  } else if (event.key === 'Tab') {
+    event.preventDefault();
   }
-});
-function resetLesson() {
-  currentDirectory = '/';
-  fileSystem = {
-    '/': ['Documents', 'file1.txt', 'file2.txt'],
-    '/Documents': ['file3.txt', 'file4.txt']
-  };
-  completedCommands = [];
-  lesson1Status = 'not-started';
+}
 
-  // Удаляем только данные урока
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'FileSystem');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'Status');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'CompletedCommands');
-
-  const statusElement = document.getElementById('lesson1-status');
-  if (statusElement) {
-    statusElement.textContent = 'Not Started';
-    statusElement.className = 'status not-started';
-  }
-
-  clearTerminal();
+function showHint(hintId) {
+  const hint = document.getElementById(hintId);
+  hint.style.display = hint.style.display === 'block' ? 'none' : 'block';
 }

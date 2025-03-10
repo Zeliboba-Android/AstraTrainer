@@ -1,83 +1,52 @@
-const terminalOutput = document.getElementById('terminal-output');
 const commandInput = document.getElementById('command-input');
 
 let helpButtonDisabled = false; // Флаг, который отслеживает состояние кнопки помощи
 
-function runCommand(commandLine) {
-  const [command, ...args] = commandLine.split(' ');
-  const action = commands[command];
-
-  if (action) {
-    const pathBefore = currentPath; // Сохраняем путь до выполнения команды
-    const result = action(args);
-    if (result) {
-      terminalOutput.innerHTML += `\n${pathBefore} $ ${commandLine}\n${result}`;
-    }
-  } else {
-    terminalOutput.innerHTML += `\n${currentPath} $ ${commandLine}\nCommand not found.`;
-  }
-}
-
-document.getElementById('run-btn').addEventListener('click', () => {
-  const command = commandInput.value.trim();
-  if (command) {
-    runCommand(command);
-    commandInput.value = '';
-    helpButtonDisabled = false; // Разрешаем нажимать кнопку help после ввода команды
-    document.getElementById('help-btn').disabled = false; // Активируем кнопку help
-  }
-});
-
-document.getElementById('clear-btn').addEventListener('click', () => {
-  commands.clear();
-});
-
-document.getElementById('help-btn').addEventListener('click', () => {
-  if (!helpButtonDisabled) {  // Проверяем, не заблокирована ли кнопка help
-    terminalOutput.innerHTML += `\n${commands.help()}`;
-    helpButtonDisabled = true; // Блокируем кнопку help
-    document.getElementById('help-btn').disabled = true; // Делаем кнопку help неактивной
-  }
-});
-
-commandInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
-    const command = commandInput.value.trim();
-    if (command) {
-      runCommand(command);
-      commandInput.value = '';
-      helpButtonDisabled = false; // Разрешаем нажимать кнопку help после ввода команды
-      document.getElementById('help-btn').disabled = false; // Активируем кнопку help
-    }
-  }
-});
 // Функция для прокрутки терминала вниз
 function scrollTerminalToBottom() {
   const terminal = document.getElementById('terminal');
   terminal.scrollTop = terminal.scrollHeight;
 }
 
-// Пример добавления новой строки в терминал
-function addNewLineToTerminal(text) {
-  const terminalOutput = document.getElementById('terminal-output');
-  terminalOutput.textContent += text;
-  scrollTerminalToBottom(); // Прокручиваем терминал вниз
+// Функция для выполнения команды
+function runCommand(commandLine) {
+  const [command, ...args] = commandLine.split(' ');
+  const action = commands[command];
+
+  // Добавляем введенную команду в терминал
+  const promptLine = document.createElement('div');
+  promptLine.className = 'prompt-line';
+  promptLine.innerHTML = `
+    <span class="prompt">user@astra:~$</span>
+    <span class="command">${commandLine}</span>
+  `;
+  terminalOutput.appendChild(promptLine);
+
+  // Обрабатываем команду
+  let result = '';
+  if (action) {
+    result = action(args);
+  } else {
+    result = `Command not found: ${command}`;
+  }
+
+  // Добавляем результат выполнения команды
+  const outputLine = document.createElement('div');
+  outputLine.className = 'output';
+  outputLine.textContent = result;
+  terminalOutput.appendChild(outputLine);
+
+  // Прокручиваем терминал вниз
+  scrollTerminalToBottom();
 }
 
-// Пример использования
-document.getElementById('run-btn').addEventListener('click', () => {
-  const commandInput = document.getElementById('command-input');
-  const command = commandInput.value;
-  addNewLineToTerminal(`${command}`);
-  commandInput.value = ''; // Очищаем поле ввода
-});
-
 // Обработка нажатия Enter в поле ввода
-document.getElementById('command-input').addEventListener('keypress', (e) => {
+commandInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
-    const commandInput = document.getElementById('command-input');
-    const command = commandInput.value;
-    addNewLineToTerminal(`${command}`);
-    commandInput.value = ''; // Очищаем поле ввода
+    const command = commandInput.value.trim();
+    if (command) {
+      runCommand(command);
+      commandInput.value = '';
+    }
   }
 });
