@@ -646,7 +646,6 @@ const commands = {
     let delimiter = '\t';
     let fields = [];
     let fileName = '';
-
     // Разбор аргументов
     for (let i = 0; i < args.length; i++) {
       const arg = args[i];
