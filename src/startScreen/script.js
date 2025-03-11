@@ -38,6 +38,8 @@ function runCommand(commandLine) {
 
   // Прокручиваем терминал вниз
   scrollTerminalToBottom();
+
+  updatePrompts();
 }
 
 // Обработка нажатия Enter в поле ввода

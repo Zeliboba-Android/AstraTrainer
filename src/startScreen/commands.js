@@ -24,6 +24,32 @@ let currentUser = null;
     saveState();
   }
 })();
+function getPrompt() {
+  const username = currentUser || 'user';
+  let displayPath = currentPath;
+
+  if (currentUser) {
+    const homePath = `/home/${username}`;
+    if (currentPath === homePath) {
+      displayPath = '~';
+    } else if (currentPath.startsWith(`${homePath}/`)) {
+      displayPath = `~${currentPath.slice(homePath.length)}`;
+    }
+  }
+
+  return `${username}@astra:${displayPath}$`;
+}
+
+function updatePrompts() {
+  // Обновляем приглашение ввода
+  document.getElementById('input-prompt').textContent = getPrompt();
+
+  // Обновляем последнее приглашение в выводе терминала
+  const prompts = document.querySelectorAll('.prompt-line .prompt');
+  if (prompts.length > 0) {
+    prompts[prompts.length - 1].textContent = getPrompt();
+  }
+}
 function saveState() {
   localStorage.setItem('fileSystem', JSON.stringify(fileSystem));
   localStorage.setItem('currentPath', currentPath);
@@ -267,6 +293,7 @@ const commands = {
 
     currentPath = newPath;
     saveState();
+    updatePrompts();
     return ` `;
   },
 
@@ -797,12 +824,14 @@ rtt min/avg/max/mdev = ${Math.min(...times).toFixed(3)}/${(times.reduce((a,b) =>
     currentUser = username;
     currentPath = `/home/${username}`;
     saveState();
+    updatePrompts();
     return `Logged in as ${username}.`;
   },
   logout: () => {
-    currentPath = '/';
     currentUser = null;
+    currentPath = '/';
     saveState();
+    updatePrompts();
     return 'Virtual session terminated. Returning to root directory.';
   },
   whoami: () => {
