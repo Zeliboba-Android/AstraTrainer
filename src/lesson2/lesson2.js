@@ -1,13 +1,9 @@
 const LESSON_STORAGE_PREFIX = 'lesson2_';
 window.LESSON_STORAGE_PREFIX = 'lesson2_';
 window.LESSON_STATUS_ELEMENT_ID = 'lesson2-status';
+window.CURRENT_LESSON_ID = 2;
 // Состояние урока
 let lesson2Status = localStorage.getItem(LESSON_STORAGE_PREFIX + 'Status') || 'not-started';
-const requiredCommands = [
-  'touch Documents/example.txt',
-  'cp Documents/example.txt Backup/',
-  'rm Documents/example.txt'
-];
 let completedCommands = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'CompletedCommands')) || [];
 let currentDirectory = localStorage.getItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory') || '/';
 let fileSystem = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'FileSystem')) || {
@@ -162,39 +158,12 @@ function handleCommand(command) {
   return result;
 }
 
-// Логика урока
 function checkFinalState() {
   const isFileRemovedFromDocuments = !fileSystem['/Documents'].includes('example.txt');
   const isFileInBackup = fileSystem['/Backup'].includes('example.txt');
   return isFileRemovedFromDocuments && isFileInBackup;
 }
 window.checkFinalState = checkFinalState;
-
-// Сброс урока
-function resetLesson() {
-  currentDirectory = '/';
-  fileSystem = {
-    '/': ['Documents', 'Backup'],
-    '/Documents': [],
-    '/Backup': []
-  };
-  completedCommands = [];
-  lesson2Status = 'not-started';
-
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'FileSystem');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'Status');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'CompletedCommands');
-
-  const statusElement = document.getElementById('lesson2-status');
-  if (statusElement) {
-    statusElement.textContent = 'Not Started';
-    statusElement.className = 'status not-started';
-  }
-
-  clearTerminal();
-  document.querySelectorAll('.hint').forEach(h => h.style.display = 'none');
-}
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
@@ -204,20 +173,19 @@ document.addEventListener('DOMContentLoaded', () => {
     '/Documents': [],
     '/Backup': []
   };
-
-  const statusElement = document.getElementById('lesson2-status');
+  const statusElement = document.getElementById(`lesson${window.CURRENT_LESSON_ID}-status`);
   if (statusElement) {
-    const savedStatus = localStorage.getItem(LESSON_STORAGE_PREFIX + 'Status') || 'not-started';
-    const completed = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'CompletedCommands')) || [];
-
-    lesson2Status = completed.length === requiredCommands.length ? 'completed' :
-      completed.length > 0 ? 'in-progress' : savedStatus;
-
-    statusElement.textContent = lesson2Status.replace('-', ' ');
-    statusElement.className = `status ${lesson2Status}`;
+    statusElement.textContent =
+      lesson2Status === 'completed' ? 'Completed' :
+        lesson2Status === 'in-progress' ? 'In Progress' : 'Not Started';
+    statusElement.className = `status ${lessonStatus}`;
   }
 });
-
+window.isRelevantCommand = function(command) {
+  // Список релевантных команд для урока 2
+  const relevantCommands = ['cd','touch', 'mkdir', 'rm']; // Пример для урока по управлению файлами
+  return relevantCommands.some(cmd => command.startsWith(cmd));
+};
 // Сохранение состояния
 function saveState() {
   localStorage.setItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory', currentDirectory);

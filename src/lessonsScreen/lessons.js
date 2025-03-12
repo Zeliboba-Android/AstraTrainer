@@ -51,9 +51,9 @@ function executeCommand() {
   const promptLine = document.createElement('div');
   promptLine.className = 'prompt-line';
   promptLine.innerHTML = `
-        <span class="prompt">user@astra:${formatPath(currentDirectory)}$</span>
-        <span class="command">${input}</span>
-      `;
+    <span class="prompt">user@astra:${formatPath(currentDirectory)}$</span>
+    <span class="command">${input}</span>
+  `;
   output.appendChild(promptLine);
 
   const response = handleCommand(input);
@@ -65,7 +65,14 @@ function executeCommand() {
 
   output.scrollTop = output.scrollHeight;
   document.getElementById('command-input').value = '';
-  updateLessonStatus(input);
+
+  // Проверяем, является ли команда релевантной
+  const isRelevantCommand = window.isRelevantCommand ? window.isRelevantCommand(input) : false;
+
+  // Обновляем статус урока, если CURRENT_LESSON_ID определен
+  if (window.CURRENT_LESSON_ID) {
+    updateLessonStatus(window.CURRENT_LESSON_ID, isRelevantCommand);
+  }
 }
 // Общие обработчики
 function handleKeyDown(event) {
@@ -75,18 +82,19 @@ function handleKeyDown(event) {
     event.preventDefault();
   }
 }
-function updateLessonStatus() {
-  // Получаем конфигурацию урока из глобальных переменных
-  const lessonStoragePrefix = window.LESSON_STORAGE_PREFIX;
-  const statusElementId = window.LESSON_STATUS_ELEMENT_ID;
-  const checkFinalState = window.checkFinalState;
+function updateLessonStatus(lessonId, isRelevantCommand = false) {
+  const lessonStoragePrefix = `lesson${lessonId}-`;
+  const statusElementId = `lesson${lessonId}-status`;
 
-  if (!lessonStoragePrefix || !statusElementId || !checkFinalState) return;
+  if (typeof window.checkFinalState !== 'function') {
+    console.error('checkFinalState is not defined for this lesson');
+    return;
+  }
 
   let lessonStatus = localStorage.getItem(lessonStoragePrefix + 'Status') || 'not-started';
 
-  // Обновляем статус на 'in-progress', если урок не завершен
-  if (lessonStatus !== 'completed') {
+  // Обновляем статус на 'in-progress' только если команда релевантна
+  if (lessonStatus !== 'completed' && isRelevantCommand) {
     lessonStatus = 'in-progress';
     localStorage.setItem(lessonStoragePrefix + 'Status', lessonStatus);
 
@@ -98,7 +106,7 @@ function updateLessonStatus() {
   }
 
   // Проверяем условие завершения урока
-  if (checkFinalState()) {
+  if (window.checkFinalState()) {
     lessonStatus = 'completed';
     localStorage.setItem(lessonStoragePrefix + 'Status', lessonStatus);
     showCongratulations();
@@ -108,27 +116,101 @@ function updateLessonStatus() {
       statusElement.textContent = 'Completed';
       statusElement.className = 'status completed';
     }
+
+    // Триггерим событие для обновления списка уроков
+    const event = new StorageEvent('storage', {
+      key: lessonStoragePrefix + 'Status',
+      newValue: lessonStatus
+    });
+    window.dispatchEvent(event);
   }
 }
+function updateAllLessonStatuses() {
+  const lessons = [
+    { id: 1, elementId: 'lesson1-status' },
+    { id: 2, elementId: 'lesson2-status' }
+    // Добавьте другие уроки по мере необходимости
+  ];
 
-document.addEventListener('DOMContentLoaded', function() {
-  function updateLessonStatusOnPage(lessonNumber) {
-    const status = localStorage.getItem(`lesson${lessonNumber}_status`) || 'not-started';
-    const elementId = `lesson${lessonNumber}-status`;
-    const statusElement = document.getElementById(elementId);
-
+  lessons.forEach(lesson => {
+    const status = localStorage.getItem(`lesson${lesson.id}-Status`) || 'not-started';
+    const statusElement = document.getElementById(lesson.elementId);
     if (statusElement) {
       statusElement.textContent =
         status === 'completed' ? 'Completed' :
           status === 'in-progress' ? 'In Progress' : 'Not Started';
       statusElement.className = `status ${status}`;
     }
+  });
+}
+
+// Обновляем статусы при загрузке страницы
+document.addEventListener('DOMContentLoaded', updateAllLessonStatuses);
+
+// Отслеживаем изменения в localStorage
+window.addEventListener('storage', function(e) {
+  if (e.key.includes('-Status')) {
+    updateAllLessonStatuses();
+  }
+});
+function resetLesson(lessonId) {
+  // Сбрасываем состояние урока
+  currentDirectory = '/';
+
+  // Устанавливаем начальную файловую систему в зависимости от урока
+  if (lessonId === 1) {
+    fileSystem = {
+      '/': ['Documents', 'file1.txt', 'file2.txt'],
+      '/Documents': ['file3.txt', 'file4.txt']
+    };
+  } else if (lessonId === 2) {
+    fileSystem = {
+      '/': ['Documents', 'Backup'],
+      '/Documents': [],
+      '/Backup': []
+    };
   }
 
-  // Обновляем статусы для всех уроков
-  updateLessonStatusOnPage(1);
-  updateLessonStatusOnPage(2);
-  updateLessonStatusOnPage(3); // Добавьте для остальных уроков
+  completedCommands = [];
+  const lessonStoragePrefix = `lesson${lessonId}-`;
+
+  // Удаляем данные урока из localStorage
+  localStorage.removeItem(lessonStoragePrefix + 'CurrentDirectory');
+  localStorage.removeItem(lessonStoragePrefix + 'FileSystem');
+  localStorage.removeItem(lessonStoragePrefix + 'Status');
+  localStorage.removeItem(lessonStoragePrefix + 'CompletedCommands');
+
+  // Устанавливаем статус урока в 'not-started'
+  localStorage.setItem(lessonStoragePrefix + 'Status', 'not-started');
+
+  // Обновляем статус внутри урока
+  const statusElement = document.getElementById(`lesson${lessonId}-status`);
+  if (statusElement) {
+    statusElement.textContent = 'Not Started';
+    statusElement.className = 'status not-started';
+  }
+
+  // Очищаем терминал
+  clearTerminal();
+
+  // Скрываем все подсказки
+  document.querySelectorAll('.hint').forEach(h => h.style.display = 'none');
+
+  // Триггерим событие для обновления статуса на lessons.html
+  const event = new StorageEvent('storage', {
+    key: lessonStoragePrefix + 'Status',
+    newValue: 'not-started'
+  });
+  window.dispatchEvent(event);
+}
+// Обновляем статусы при загрузке страницы
+document.addEventListener('DOMContentLoaded', updateAllLessonStatuses);
+
+// Отслеживаем изменения в localStorage
+window.addEventListener('storage', function(e) {
+  if (e.key.includes('-Status')) {
+    updateAllLessonStatuses();
+  }
 });
 function showHint(hintId) {
   const hint = document.getElementById(hintId);

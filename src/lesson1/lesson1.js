@@ -1,6 +1,7 @@
 const LESSON_STORAGE_PREFIX = 'lesson1_';
 window.LESSON_STORAGE_PREFIX = 'lesson1_';
 window.LESSON_STATUS_ELEMENT_ID = 'lesson1-status';
+window.CURRENT_LESSON_ID = 1;
 // Состояние урока
 let lesson1Status = localStorage.getItem(LESSON_STORAGE_PREFIX + 'Status') || 'not-started';
 const requiredCommands = ['cd Documents', 'mkdir MyFolder', 'ls'];
@@ -14,9 +15,7 @@ let fileSystem = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'FileSy
 function handleCommand(command) {
   let result = '';
   const [cmd, ...args] = command.split(' ');
-
-  // Проверяем команду (чувствительно к регистру)
-  switch (cmd) { // Убрали .toLowerCase() для команды
+  switch (cmd) {
     case 'help':
       result = 'Available commands: help, cd, mkdir, ls, clear';
       break;
@@ -121,34 +120,12 @@ function checkFinalState() {
 }
 
 window.checkFinalState = checkFinalState; // Экспортируем функцию
-// Специфичные функции урока
-function resetLesson() {
-  currentDirectory = '/';
-  fileSystem = {
-    '/': ['Documents', 'file1.txt', 'file2.txt'],
-    '/Documents': ['file3.txt', 'file4.txt']
-  };
-  completedCommands = [];
-  lesson1Status = 'not-started';
 
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'FileSystem');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'Status');
-  localStorage.removeItem(LESSON_STORAGE_PREFIX + 'CompletedCommands');
-
-  const statusElement = document.getElementById('lesson1-status');
-  if (statusElement) {
-    statusElement.textContent = 'Not Started';
-    statusElement.className = 'status not-started';
-  }
-
-  clearTerminal();
-  const hint = document.getElementById('hint1');
-  if (hint) {
-    hint.style.display = 'none';
-  }
-}
-
+window.isRelevantCommand = function(command) {
+  // Список релевантных команд для урока 1
+  const relevantCommands = ['cd', 'ls', 'mkdir']; // Пример для урока по навигации
+  return relevantCommands.some(cmd => command.startsWith(cmd));
+};
 // Инициализация урока
 document.addEventListener('DOMContentLoaded', function () {
   currentDirectory = localStorage.getItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory') || '/';
@@ -156,22 +133,11 @@ document.addEventListener('DOMContentLoaded', function () {
     '/': ['Documents', 'file1.txt', 'file2.txt'],
     '/Documents': ['file3.txt', 'file4.txt']
   };
-
-  const statusElement = document.getElementById('lesson1-status');
+  const statusElement = document.getElementById(`lesson${window.CURRENT_LESSON_ID}-status`);
   if (statusElement) {
-    const savedStatus = localStorage.getItem(LESSON_STORAGE_PREFIX + 'Status') || 'not-started';
-    const completed = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'CompletedCommands')) || [];
-
-    let displayStatus = savedStatus;
-    if (completed.length === requiredCommands.length) {
-      displayStatus = 'completed';
-    } else if (completed.length > 0) {
-      displayStatus = 'in-progress';
-    }
-
     statusElement.textContent =
-      displayStatus === 'completed' ? 'Completed' :
-        displayStatus === 'in-progress' ? 'In Progress' : 'Not Started';
-    statusElement.className = `status ${displayStatus}`;
+      lesson1Status === 'completed' ? 'Completed' :
+        lesson1Status === 'in-progress' ? 'In Progress' : 'Not Started';
+    statusElement.className = `status ${lessonStatus}`;
   }
 });
