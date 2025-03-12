@@ -1,5 +1,6 @@
 const LESSON_STORAGE_PREFIX = 'lesson1_';
-
+window.LESSON_STORAGE_PREFIX = 'lesson1_';
+window.LESSON_STATUS_ELEMENT_ID = 'lesson1-status';
 // Состояние урока
 let lesson1Status = localStorage.getItem(LESSON_STORAGE_PREFIX + 'Status') || 'not-started';
 const requiredCommands = ['cd Documents', 'mkdir MyFolder', 'ls'];
@@ -10,13 +11,12 @@ let fileSystem = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'FileSy
   '/Documents': ['file3.txt', 'file4.txt']
 };
 
-// Логика команд
 function handleCommand(command) {
   let result = '';
-
   const [cmd, ...args] = command.split(' ');
 
-  switch (cmd.toLowerCase()) {
+  // Проверяем команду (чувствительно к регистру)
+  switch (cmd) { // Убрали .toLowerCase() для команды
     case 'help':
       result = 'Available commands: help, cd, mkdir, ls, clear';
       break;
@@ -33,6 +33,13 @@ function handleCommand(command) {
       if (fileSystem[newPath]) {
         currentDirectory = newPath;
         result = `Changed directory to "${targetDir}".`;
+
+        // Нормализуем команду: команда в нижнем регистре, аргумент — как есть
+        const normalizedCdCommand = `cd ${targetDir}`;
+        if (requiredCommands.includes(normalizedCdCommand) && !completedCommands.includes(normalizedCdCommand)) {
+          completedCommands.push(normalizedCdCommand);
+          localStorage.setItem(LESSON_STORAGE_PREFIX + 'CompletedCommands', JSON.stringify(completedCommands));
+        }
       } else {
         result = `Directory "${targetDir}" not found.`;
       }
@@ -51,6 +58,13 @@ function handleCommand(command) {
         fileSystem[newDirPath] = [];
         fileSystem[currentDirectory].push(newDir);
         result = `Directory "${newDir}" created.`;
+
+        // Нормализуем команду: команда в нижнем регистре, аргумент — как есть
+        const normalizedMkdirCommand = `mkdir ${newDir}`;
+        if (currentDirectory === '/Documents' && requiredCommands.includes(normalizedMkdirCommand) && !completedCommands.includes(normalizedMkdirCommand)) {
+          completedCommands.push(normalizedMkdirCommand);
+          localStorage.setItem(LESSON_STORAGE_PREFIX + 'CompletedCommands', JSON.stringify(completedCommands));
+        }
       } else {
         result = `Directory "${newDir}" already exists.`;
       }
@@ -58,6 +72,17 @@ function handleCommand(command) {
 
     case 'ls':
       result = fileSystem[currentDirectory].join('\n');
+
+      // Добавляем команду ls в completedCommands только если:
+      // 1. Текущая директория — /Documents.
+      // 2. Папка MyFolder уже создана.
+      if (currentDirectory === '/Documents' && fileSystem['/Documents'].includes('MyFolder')) {
+        const normalizedCommand = 'ls';
+        if (requiredCommands.includes(normalizedCommand) && !completedCommands.includes(normalizedCommand)) {
+          completedCommands.push(normalizedCommand);
+          localStorage.setItem(LESSON_STORAGE_PREFIX + 'CompletedCommands', JSON.stringify(completedCommands));
+        }
+      }
       break;
 
     case 'clear':
@@ -73,54 +98,29 @@ function handleCommand(command) {
 }
 
 // Логика урока
-function updateLessonStatus(command) {
-  const normalizedCommand = command.trim().replace(/\s+/g, ' ').toLowerCase();
-  const expectedIndex = completedCommands.length;
+function checkFinalState() {
+  const requiredCommands = ['cd Documents', 'mkdir MyFolder', 'ls'];
+  const completedCommands = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'CompletedCommands')) || [];
 
-  if (expectedIndex >= requiredCommands.length) return;
-
-  const expectedCommand = requiredCommands[expectedIndex].toLowerCase();
-
-  if (normalizedCommand === expectedCommand) {
-    let isValid = true;
-
-    switch (expectedCommand) {
-      case 'cd documents':
-        isValid = currentDirectory === '/Documents';
-        break;
-      case 'mkdir myfolder':
-        isValid = fileSystem['/Documents'].includes('MyFolder');
-        break;
-      case 'ls':
-        isValid = currentDirectory === '/Documents' &&
-          fileSystem['/Documents'].includes('MyFolder');
-        break;
-    }
-
-    if (isValid) {
-      completedCommands.push(requiredCommands[expectedIndex]);
-      localStorage.setItem(LESSON_STORAGE_PREFIX + 'CompletedCommands', JSON.stringify(completedCommands));
-
-      if (lesson1Status === 'not-started') {
-        lesson1Status = 'in-progress';
-        localStorage.setItem(LESSON_STORAGE_PREFIX + 'Status', lesson1Status);
-      }
-
-      if (completedCommands.length === requiredCommands.length) {
-        lesson1Status = 'completed';
-        localStorage.setItem(LESSON_STORAGE_PREFIX + 'Status', lesson1Status);
-        showCongratulations();
-      }
-
-      const statusElement = document.getElementById('lesson1-status');
-      if (statusElement) {
-        statusElement.textContent = lesson1Status === 'completed' ? 'Completed' : 'In Progress';
-        statusElement.className = `status ${lesson1Status}`;
-      }
-    }
+  // Проверяем, выполнены ли все команды
+  if (completedCommands.length !== requiredCommands.length) {
+    console.log('Не все команды выполнены');
+    console.log('Выполнено:', completedCommands.length, 'из', requiredCommands.length);
+    return false;
   }
+
+  // Проверяем состояние файловой системы
+  const isInDocumentsDir = currentDirectory === '/Documents';
+  const isMyFolderCreated = fileSystem['/Documents'].includes('MyFolder');
+
+  // Проверяем, была ли выполнена команда ls
+  const isLsCommandExecuted = completedCommands.includes('ls');
+
+  // Урок завершён, если все условия выполнены
+  return isInDocumentsDir && isMyFolderCreated && isLsCommandExecuted;
 }
 
+window.checkFinalState = checkFinalState; // Экспортируем функцию
 // Специфичные функции урока
 function resetLesson() {
   currentDirectory = '/';

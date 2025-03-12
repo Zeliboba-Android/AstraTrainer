@@ -75,7 +75,61 @@ function handleKeyDown(event) {
     event.preventDefault();
   }
 }
+function updateLessonStatus() {
+  // Получаем конфигурацию урока из глобальных переменных
+  const lessonStoragePrefix = window.LESSON_STORAGE_PREFIX;
+  const statusElementId = window.LESSON_STATUS_ELEMENT_ID;
+  const checkFinalState = window.checkFinalState;
 
+  if (!lessonStoragePrefix || !statusElementId || !checkFinalState) return;
+
+  let lessonStatus = localStorage.getItem(lessonStoragePrefix + 'Status') || 'not-started';
+
+  // Обновляем статус на 'in-progress', если урок не завершен
+  if (lessonStatus !== 'completed') {
+    lessonStatus = 'in-progress';
+    localStorage.setItem(lessonStoragePrefix + 'Status', lessonStatus);
+
+    const statusElement = document.getElementById(statusElementId);
+    if (statusElement) {
+      statusElement.textContent = 'In Progress';
+      statusElement.className = 'status in-progress';
+    }
+  }
+
+  // Проверяем условие завершения урока
+  if (checkFinalState()) {
+    lessonStatus = 'completed';
+    localStorage.setItem(lessonStoragePrefix + 'Status', lessonStatus);
+    showCongratulations();
+
+    const statusElement = document.getElementById(statusElementId);
+    if (statusElement) {
+      statusElement.textContent = 'Completed';
+      statusElement.className = 'status completed';
+    }
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  function updateLessonStatusOnPage(lessonNumber) {
+    const status = localStorage.getItem(`lesson${lessonNumber}_status`) || 'not-started';
+    const elementId = `lesson${lessonNumber}-status`;
+    const statusElement = document.getElementById(elementId);
+
+    if (statusElement) {
+      statusElement.textContent =
+        status === 'completed' ? 'Completed' :
+          status === 'in-progress' ? 'In Progress' : 'Not Started';
+      statusElement.className = `status ${status}`;
+    }
+  }
+
+  // Обновляем статусы для всех уроков
+  updateLessonStatusOnPage(1);
+  updateLessonStatusOnPage(2);
+  updateLessonStatusOnPage(3); // Добавьте для остальных уроков
+});
 function showHint(hintId) {
   const hint = document.getElementById(hintId);
   hint.style.display = hint.style.display === 'block' ? 'none' : 'block';

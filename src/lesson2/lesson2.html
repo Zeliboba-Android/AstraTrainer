@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lesson 1: Navigating the File System</title>
+  <title>Lesson 2: File Management Commands</title>
   <link rel="stylesheet" href="../assets/shared.css">
   <link rel="stylesheet" href="../assets/lesson_style.css">
 </head>
 <body>
-<div id="lesson1-status" class="status not-started">Status: Not Started</div>
+<div id="lesson2-status" class="status not-started">Status: Not Started</div>
 <div class="lesson-content">
-  <h2>Lesson 1: Navigating the File System</h2>
-  <p><strong>Задание:</strong> Перейдите в директорию "Documents", создайте там новую директорию "MyFolder" и выведите список содержимого директории.</p>
+  <h2>Lesson 2: File Management Commands</h2>
+  <p><strong>Задание:</strong> Создайте файл "example.txt" в директории "Documents", скопируйте его в директорию "Backup" и удалите оригинальный файл.</p>
   <div class="button-group">
     <button id="back-btn" onclick="window.location.href='../lessonsScreen/lessons.html'">Back to lessons</button>
     <button id="reset-btn" onclick="resetLesson()">Reset Lesson</button>
-    <button onclick="showHint('hint1')">Показать подсказку</button>
+    <button onclick="showHint('hint2')">Показать подсказку</button>
   </div>
   <div class="hint-container">
-    <div id="hint1" class="hint" style="display: none;">
-      <p><strong>Подсказка:</strong> Используйте команду `cd Documents`, чтобы перейти в директорию "Documents". Затем используйте `mkdir MyFolder`, чтобы создать новую директорию, и `ls`, чтобы вывести список содержимого.</p>
+    <div id="hint2" class="hint" style="display: none;">
+      <p><strong>Подсказка:</strong> Используйте команду `touch example.txt` для создания файла, `cp example.txt /Backup` для копирования и `rm example.txt` для удаления.</p>
     </div>
   </div>
   <div class="terminal">
@@ -29,7 +29,7 @@
         <span class="output"> Welcome to Astra CLI Trainer!</span>
       </div>
       <div class="prompt-line">
-        <span class="prompt">user@astra:~$</span>
+        <span id="current-prompt" class="prompt">user@astra:~$</span>
         <span class="output"> Type 'help' for available commands</span>
       </div>
     </div>
@@ -41,6 +41,6 @@
   </div>
 </div>
 <script src="../lessonsScreen/lessons.js"></script>
-<script src="lesson1.js"></script>
+<script src="lesson2.js"></script>
 </body>
 </html>
