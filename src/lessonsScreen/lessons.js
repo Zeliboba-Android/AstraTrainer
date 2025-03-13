@@ -128,7 +128,8 @@ function updateLessonStatus(lessonId, isRelevantCommand = false) {
 function updateAllLessonStatuses() {
   const lessons = [
     { id: 1, elementId: 'lesson1-status' },
-    { id: 2, elementId: 'lesson2-status' }
+    { id: 2, elementId: 'lesson2-status' },
+    { id: 3, elementId: 'lesson3-status' }
     // Добавьте другие уроки по мере необходимости
   ];
 
@@ -168,6 +169,11 @@ function resetLesson(lessonId) {
       '/': ['Documents', 'Backup'],
       '/Documents': [],
       '/Backup': []
+    };
+  } else if (lessonId === 3) {
+    fileSystem = {
+      '/': ['Documents'],
+      '/Documents': []
     };
   }
 

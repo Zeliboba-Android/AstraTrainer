@@ -52,3 +52,8 @@ commandInput.addEventListener('keydown', (e) => {
     }
   }
 });
+// Добавьте в начало скрипта инициализацию подсказки
+document.addEventListener('DOMContentLoaded', () => {
+  updatePrompts();
+  commandInput.focus(); // Автофокус на поле ввода
+});
