@@ -129,7 +129,9 @@ function updateAllLessonStatuses() {
   const lessons = [
     { id: 1, elementId: 'lesson1-status' },
     { id: 2, elementId: 'lesson2-status' },
-    { id: 3, elementId: 'lesson3-status' }
+    { id: 3, elementId: 'lesson3-status' },
+    { id: 4, elementId: 'lesson4-status' },
+    { id: 5, elementId: 'lesson5-status' }
     // Добавьте другие уроки по мере необходимости
   ];
 
@@ -171,6 +173,11 @@ function resetLesson(lessonId) {
       '/Backup': []
     };
   } else if (lessonId === 3) {
+    fileSystem = {
+      '/': ['Documents'],
+      '/Documents': []
+    };
+  } else if (lessonId === 4) {
     fileSystem = {
       '/': ['Documents'],
       '/Documents': []
@@ -221,4 +228,22 @@ window.addEventListener('storage', function(e) {
 function showHint(hintId) {
   const hint = document.getElementById(hintId);
   hint.style.display = hint.style.display === 'block' ? 'none' : 'block';
+}
+function appendOutput(text, type = 'output') {
+  const outputDiv = document.getElementById('terminal-output');
+  const promptLine = document.createElement('div');
+  promptLine.className = 'prompt-line';
+
+  let outputClass = 'output';
+  if (type === 'error') outputClass += ' error';
+  if (type === 'success') outputClass += ' success';
+  if (type === 'command') outputClass += ' command';
+
+  promptLine.innerHTML = `
+        <span class="prompt">user@astra:~$</span>
+        <span class="${outputClass}">${text}</span>
+    `;
+
+  outputDiv.appendChild(promptLine);
+  outputDiv.scrollTop = outputDiv.scrollHeight;
 }

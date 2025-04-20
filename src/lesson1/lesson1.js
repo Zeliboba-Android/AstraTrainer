@@ -1,5 +1,5 @@
-const LESSON_STORAGE_PREFIX = 'lesson1_';
-window.LESSON_STORAGE_PREFIX = 'lesson1_';
+const LESSON_STORAGE_PREFIX = 'lesson1-';
+window.LESSON_STORAGE_PREFIX = 'lesson1-';
 window.LESSON_STATUS_ELEMENT_ID = 'lesson1-status';
 window.CURRENT_LESSON_ID = 1;
 // Состояние урока
@@ -127,17 +127,11 @@ window.isRelevantCommand = function(command) {
   return relevantCommands.some(cmd => command.startsWith(cmd));
 };
 // Инициализация урока
-document.addEventListener('DOMContentLoaded', function () {
-  currentDirectory = localStorage.getItem(LESSON_STORAGE_PREFIX + 'CurrentDirectory') || '/';
-  fileSystem = JSON.parse(localStorage.getItem(LESSON_STORAGE_PREFIX + 'FileSystem')) || {
-    '/': ['Documents', 'file1.txt', 'file2.txt'],
-    '/Documents': ['file3.txt', 'file4.txt']
-  };
-  const statusElement = document.getElementById(`lesson${window.CURRENT_LESSON_ID}-status`);
+document.addEventListener('DOMContentLoaded', function() {
+  const status = localStorage.getItem(LESSON_STORAGE_PREFIX + 'Status') || 'not-started'; // Теперь использует правильный префикс
+  const statusElement = document.getElementById(window.LESSON_STATUS_ELEMENT_ID);
   if (statusElement) {
-    statusElement.textContent =
-      lesson1Status === 'completed' ? 'Completed' :
-        lesson1Status === 'in-progress' ? 'In Progress' : 'Not Started';
-    statusElement.className = `status ${lessonStatus}`;
+    statusElement.textContent = `Status: ${status.charAt(0).toUpperCase() + status.slice(1).replace('-', ' ')}`;
+    statusElement.className = `status ${status}`;
   }
 });

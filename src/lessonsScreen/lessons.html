@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lessons</title>
+  <title>Список уроков</title>
   <link rel="stylesheet" href="../assets/shared.css">
   <link rel="stylesheet" href="lessons.css">
 </head>
@@ -12,20 +12,28 @@
   <img src="../assets/image/Astra_Linux_Special_Edition_3.jpg" alt="Astra Linux Logo" id="astra-logo">
 </div>
 <div id="lessons-container">
-  <h1>Linux Lessons</h1>
+  <h1>Уроки по Astra Linux</h1>
   <div class="lesson-card" onclick="window.location.href='../lesson1/lesson1.html'">
-    <h2>Lesson 1: Navigating the File System</h2>
-    <span id="lesson1-status" class="status not-started">Not Started</span>
+    <h2>Урок 1: Навигация по файловой системе</h2>
+    <span id="lesson1-status" class="status not-started">Не выполнено</span>
   </div>
   <div class="lesson-card" onclick="window.location.href='../lesson2/lesson2.html'">
-    <h2>Lesson 2: File Management Commands</h2>
-    <span id="lesson2-status" class="status not-started">Not Started</span>
+    <h2>Урок 2: Команды управления файлами</h2>
+    <span id="lesson2-status" class="status not-started">Не выполнено</span>
   </div>
   <div class="lesson-card" onclick="window.location.href='../lesson3/lesson3.html'">
-    <h2>Lesson 3: Working with File Content</h2>
-    <span class="status not-started">Not Started</span>
+    <h2>Урок 3: Работа с содержимым файла</h2>
+    <span id="lesson3-status" class="status not-started">Не выполнено</span>
   </div>
-  <button id="back-btn" onclick="window.location.href='../startScreen/View.html'">Back to Home</button>
+  <div class="lesson-card" onclick="window.location.href='../lesson4/lesson4.html'">
+    <h2>Урок 4: Обработка и фильтрация текста</h2>
+    <span id="lesson4-status" class="status not-started">Не выполнено</span>
+  </div>
+  <div class="lesson-card" onclick="window.location.href='../lesson5/lesson5.html'">
+    <h2>Урок 5: Диагностика сети и анализ журналов</h2>
+    <span id="lesson5-status" class="status not-started">Не выполнено</span>
+  </div>
+  <button id="back-btn" onclick="window.location.href='../startScreen/View.html'">Вернуться к командной строке</button>
 </div>
 
 <script src="lessons.js"></script>

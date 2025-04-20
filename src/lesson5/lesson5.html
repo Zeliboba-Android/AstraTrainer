@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Урок 5: Диагностика сети и анализ журналов</title>
+  <link rel="stylesheet" href="../assets/shared.css">
+  <link rel="stylesheet" href="../assets/lesson_style.css">
+</head>
+<body>
+<div id="lesson5-status" class="status not-started">Status: Not Started</div>
+<div class="lesson-content">
+  <h2>Урок 5: Диагностика сети и анализ журналов</h2>
+  <p><strong>Задание:</strong><br>
+    1. Создайте файл "logs.txt" с 15 строками логов (включая 5 строк с "ERROR")<br>
+    2. Найдите все ошибки и сохраните в "errors.txt"<br>
+    3. Подсчитайте количество ошибок<br>
+    4. Проверьте доступность локального интерфейса (127.0.0.1)<br>
+    5. Определите активные сетевые интерфейсы</p>
+
+  <div class="button-group">
+    <button id="back-btn" onclick="window.location.href='../lessonsScreen/lessons.html'">Вернуться к списку уроков</button>
+    <button id="reset-btn" onclick="resetLesson(5)">Сбросить состояние урока</button>
+    <button onclick="showHint('hint5')">Показать подсказку</button>
+  </div>
+
+  <div class="hint-container">
+    <div id="hint5" class="hint" style="display: none;">
+      <p><strong>Подсказка:</strong><br>
+        1. echo -e "INFO: Start\nERROR: Disk full\nINFO: User login\nERROR: Timeout\nINFO: Process started\nERROR:
+        Permission denied\nINFO: Connection established\nERROR: File not found\nINFO: Backup completed\nERROR:
+        Network timeout\nINFO: Task finished\nINFO: System updated\nINFO: New device detected\nINFO:
+        Service restarted\nINFO: Memory usage normal" > logs.txt<br>
+        2. grep ERROR logs.txt > errors.txt<br>
+        3. wc -l errors.txt<br>
+        4. ping 127.0.0.1<br>
+        5. ifconfig</p>
+    </div>
+  </div>
+
+  <div class="terminal">
+    <div id="terminal-output">
+      <div class="prompt-line">
+        <span class="prompt">user@astra:~$</span>
+        <span class="output"> Добро пожаловать в Astra Trainer!</span>
+      </div>
+      <div class="prompt-line">
+        <span id="current-prompt" class="prompt">user@astra:~$</span>
+        <span class="output"> Введите "help" для поиска доступных команд</span>
+      </div>
+    </div>
+    <div id="input-section">
+      <span class="prompt">user@astra:~$</span>
+      <input id="command-input" type="text" autocomplete="off" onkeydown="handleKeyDown(event)">
+      <button id="clear-btn" onclick="clearTerminal()">Очистить</button>
+    </div>
+  </div>
+</div>
+<script src="../lessonsScreen/lessons.js"></script>
+<script src="lesson5.js"></script>
+</body>
+</html>

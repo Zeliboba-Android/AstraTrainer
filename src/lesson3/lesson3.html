@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lesson 3: Working with File Content</title>
+  <title>Урок 3: Работа с содержимым файла</title>
   <link rel="stylesheet" href="../assets/shared.css">
   <link rel="stylesheet" href="../assets/lesson_style.css">
 </head>
 <body>
 <div id="lesson3-status" class="status not-started">Status: Not Started</div>
 <div class="lesson-content">
-  <h2>Lesson 3: Working with File Content</h2>
+  <h2>Урок 3: Работа с содержимым файла</h2>
   <p><strong>Задание:</strong> Перейдите в директорию "Documents", создайте файл "lesson3.txt", запишите в него три строки текста, просмотрите содержимое, а затем подсчитайте количество строк, слов и символов.</p>
   <div class="button-group">
-    <button id="back-btn" onclick="window.location.href='../lessonsScreen/lessons.html'">Back to lessons</button>
-    <button id="reset-btn" onclick="resetLesson(3)">Reset Lesson</button>
+    <button id="back-btn" onclick="window.location.href='../lessonsScreen/lessons.html'">Вернуться к списку уроков</button>
+    <button id="reset-btn" onclick="resetLesson(3)">Сбросить состояние урока</button>
     <button onclick="showHint('hint3')">Показать подсказку</button>
   </div>
   <div class="hint-container">
@@ -26,17 +26,17 @@
     <div id="terminal-output">
       <div class="prompt-line">
         <span class="prompt">user@astra:~$</span>
-        <span class="output"> Welcome to Astra CLI Trainer!</span>
+        <span class="output"> Добро пожаловать в Astra Trainer!</span>
       </div>
       <div class="prompt-line">
         <span id="current-prompt" class="prompt">user@astra:~$</span>
-        <span class="output"> Type 'help' for available commands</span>
+        <span class="output"> Введите "help" для поиска доступных команд</span>
       </div>
     </div>
     <div id="input-section">
       <span class="prompt">user@astra:~$</span>
       <input id="command-input" type="text" autocomplete="off" onkeydown="handleKeyDown(event)">
-      <button id="clear-btn" onclick="clearTerminal()">Clear</button>
+      <button id="clear-btn" onclick="clearTerminal()">Очистить</button>
     </div>
   </div>
 </div>

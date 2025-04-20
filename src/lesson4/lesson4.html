@@ -3,23 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Урок 2: Команды управления файлами</title>
+  <title>Урок 4: Обработка и фильтрация текста</title>
   <link rel="stylesheet" href="../assets/shared.css">
   <link rel="stylesheet" href="../assets/lesson_style.css">
 </head>
 <body>
-<div id="lesson2-status" class="status not-started">Status: Not Started</div>
+<div id="lesson4-status" class="status not-started">Status: Not Started</div>
 <div class="lesson-content">
-  <h2>Урок 2: Команды управления файлами</h2>
-  <p><strong>Задание:</strong> Создайте файл "example.txt" в директории "Documents", скопируйте его в директорию "Backup" и удалите оригинальный файл.</p>
+  <h2>Урок 4: Обработка и фильтрация текста</h2>
+  <p><strong>Задание:</strong> Создайте файл "data.txt" с 10 строками (повторяющиеся значения), отсортируйте его, оставьте уникальные строки, извлеките первые 3 символа каждой строки, просмотрите первые и последние 3 строки результата.</p>
   <div class="button-group">
     <button id="back-btn" onclick="window.location.href='../lessonsScreen/lessons.html'">Вернуться к списку уроков</button>
-    <button id="reset-btn" onclick="resetLesson(2)">Сбросить состояние урока</button>
-    <button onclick="showHint('hint2')">Показать подсказку</button>
+    <button id="reset-btn" onclick="resetLesson(4)">Сбросить состояние урока</button>
+    <button onclick="showHint('hint4')">Показать подсказку</button>
   </div>
   <div class="hint-container">
-    <div id="hint2" class="hint" style="display: none;">
-      <p><strong>Подсказка:</strong> Используйте команду `touch example.txt` для создания файла, `cp example.txt /Backup` для копирования и `rm example.txt` для удаления.</p>
+    <div id="hint4" class="hint" style="display: none;">
+      <p><strong>Подсказка:</strong>
+        1. echo -e "apple\norange\nbanana\napple\ngrape\norange\nmelon\nbanana\nkiwi\nplum" > data.txt<br>
+        2. sort data.txt > sorted.txt<br>
+        3. uniq sorted.txt > unique.txt<br>
+        4. cut -c1-3 unique.txt > final.txt<br>
+        5. head -n3 final.txt<br>
+        6. tail -n3 final.txt</p>
     </div>
   </div>
   <div class="terminal">
@@ -41,6 +47,6 @@
   </div>
 </div>
 <script src="../lessonsScreen/lessons.js"></script>
-<script src="lesson2.js"></script>
+<script src="lesson4.js"></script>
 </body>
 </html>
