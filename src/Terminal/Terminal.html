@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CLI Trainer</title>
+  <link rel="stylesheet" href="../Styles/shared.css">
+  <link rel="stylesheet" href="../Styles/style.css">
+</head>
+<body>
+
+
+<div id="terminal">
+  <div id="terminal-output">
+    <div class="prompt-line">
+      <span class="prompt">user@astra:~$</span>
+      <span class="output"> Добро пожаловать в Astra Trainer!</span>
+    </div>
+    <div class="prompt-line">
+      <span class="prompt">user@astra:~$</span>
+      <span class="output"> Введите "help" для поиска доступных команд</span>
+    </div>
+  </div>
+</div>
+
+<div id="input-section">
+  <span class="prompt" id="input-prompt"></span>
+  <input id="command-input" type="text" autocomplete="off">
+  <button id="lessons-btn" onclick="window.location.href='../lessonsScreen/lessonsScreen.html'">Список уроков</button>
+</div>
+<script src="../Commands/commands.js"></script>
+<script src="../Commands/script.js"></script>
+</body>
+</html>

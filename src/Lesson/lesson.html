@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Урок</title>
+  <link rel="stylesheet" href="../Styles/shared.css">
+  <link rel="stylesheet" href="../Styles/lesson_style.css">
+</head>
+<body>
+
+<div class="lesson-content">
+  <!-- Блок статуса урока -->
+  <div id="lesson-status" class="status not-started"></div>
+
+  <!-- Заголовок урока -->
+  <h2 id="lesson-title">Урок: Название урока</h2>
+
+  <!-- Основное задание -->
+  <p class="task-description"><strong>Задание:</strong> <span id="task-description">Текст задания</span></p>
+  <!-- Группа кнопок управления -->
+  <div class="button-group">
+    <button id="back-btn">← Назад к урокам</button>
+    <button id="reset-btn">Сбросить урок</button>
+    <button id="show-hint-btn">Показать подсказку</button>
+  </div>
+
+  <!-- Блок с подсказками -->
+  <div class="hint-container">
+    <div id="hint-content" class="hint" style="display: none;">
+      <p><strong>Подсказка:</strong> <span id="hint-text">Текст подсказки</span></p>
+    </div>
+  </div>
+
+  <!-- Встроенный терминал -->
+  <div class="terminal">
+    <div id="terminal-output">
+      <div class="prompt-line">
+        <span class="output">Добро пожаловать в урок!</span>
+      </div>
+    </div>
+    <div id="input-section">
+      <span id="input-prompt" class="prompt"></span>
+      <input id="command-input" type="text" autocomplete="off">
+      <button id="clear-btn">Очистить</button>
+    </div>
+  </div>
+
+<script type="module" src="./lessonHandler.js"></script>
+</body>
+</html>

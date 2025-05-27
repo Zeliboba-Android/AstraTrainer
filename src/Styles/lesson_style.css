@@ -1,0 +1,121 @@
+body {
+    font-family: 'DejaVu Sans Mono', monospace;
+    background-color: #2D2D2D;
+    color: #FFFFFF;
+    margin: 0;
+    padding: 20px;
+    height: 100vh;
+    box-sizing: border-box;
+}
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+#input-section .prompt {
+    margin-right: 10px; /* Отступ между приглашением и полем ввода */
+}
+.lesson-content {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.terminal {
+    background-color: #1E1E1E;
+    border: 1px solid #3C3C3C;
+    border-radius: 3px;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.5);
+    margin-top: 20px;
+}
+
+#terminal-output {
+    padding: 15px;
+    height: 300px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.prompt {
+    color: #4E9A06;
+}
+
+.command {
+    color: #D3D7CF;
+}
+
+.output {
+    color: #888A85;
+}
+
+#input-section {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background-color: #2D2D2D;
+    border-top: 1px solid #3C3C3C;
+}
+
+#command-input {
+    flex-grow: 1;
+    background: none;
+    border: none;
+    color: #D3D7CF;
+    font-family: 'DejaVu Sans Mono', monospace;
+    font-size: 14px;
+    padding: 5px 0;
+    caret-color: #4E9A06;
+}
+
+#command-input:focus {
+    outline: none;
+}
+
+button {
+    background-color: #007acc;
+    color: #D3D7CF;
+    border: 1px solid #3C3C3C;
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-family: 'DejaVu Sans Mono', monospace;
+    margin-left: 10px;
+}
+
+
+#back-btn,
+#reset-btn {
+    position: static;
+    margin: 0;
+    transform: none;
+}
+#reset-btn{
+    background-color: #f44336;
+}
+.hint {
+    border-left: 3px solid #4E9A06;
+    padding-left: 10px;
+    margin: 15px 0;
+}
+
+.status {
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+.status.completed {
+    background-color: #4caf50;
+    color: #fff;
+}
+
+.status.in-progress {
+    background-color: #ff9800;
+    color: #fff;
+}
+
+.status.not-started {
+    background-color: #f44336;
+    color: #fff;
+}

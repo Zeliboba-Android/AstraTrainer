@@ -1,0 +1,67 @@
+body {
+    font-family: 'DejaVu Sans Mono', monospace;
+    background-color: #2D2D2D;
+    color: #888A85;
+    margin: 0;
+    padding: 20px;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+#terminal {
+    background-color: #1E1E1E;
+    border: 1px solid #3C3C3C;
+    border-radius: 3px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    margin: 20px 0;
+    padding: 15px;
+    height: 500px;
+    overflow-y: auto;
+}
+
+.prompt {
+    color: #4E9A06;
+}
+
+.command {
+    color: #D3D7CF;
+}
+
+.output {
+    color: #888A85;
+}
+
+#input-section {
+    display: flex;
+    align-items: center;
+    padding: 10px; /* Уменьшаем отступы */
+    background-color: #2D2D2D;
+    border-top: 1px solid #3C3C3C;
+    height: 40px; /* Фиксированная высота для input-section */
+}
+
+#command-input {
+    flex-grow: 1;
+    background: none;
+    border: none;
+    color: #D3D7CF;
+    font-family: 'DejaVu Sans Mono', monospace;
+    font-size: 14px;
+    padding: 5px 0;
+    caret-color: #4E9A06;
+    margin-left: 10px;
+}
+
+#command-input:focus {
+    outline: none;
+}
+
+button {
+    color: #D3D7CF;
+    border: 1px solid #3C3C3C;
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-family: 'DejaVu Sans Mono', monospace;
+    margin-left: 10px;
+}
+
